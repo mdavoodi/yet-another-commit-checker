@@ -1,19 +1,16 @@
 package com.isroot.stash.plugin;
 
-import com.atlassian.applinks.api.CredentialsRequiredException;
-import com.atlassian.sal.api.net.ResponseException;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.RepositorySettingsValidator;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.setting.SettingsValidationErrors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
+import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author sdford
@@ -48,22 +45,10 @@ public class ConfigValidator implements RepositorySettingsValidator
         String jqlMatcher = settings.getString("issueJqlMatcher");
         if(!isNullOrEmpty(jqlMatcher))
         {
-            try
+            List<String> jqlErrors = jiraService.checkJqlQuery(jqlMatcher);
+            for (String err : jqlErrors)
             {
-                if(!jiraService.isJqlQueryValid(jqlMatcher))
-                {
-                    errors.addFieldError("issueJqlMatcher", "The JQL query syntax is invalid.");
-                }
-            }
-            catch(ResponseException ex)
-            {
-                log.error("unexpected exception while trying to validate jql query", ex);
-                errors.addFieldError("issueJqlMatcher", "Unable to validate JQL query with JIRA because there was an unexpected exception. Please see Stash logs.");
-            }
-            catch(CredentialsRequiredException ex)
-            {
-                log.error("authentication error while trying to validate jql query", ex);
-                errors.addFieldError("issueJqlMatcher", "Unable to validate JQL query with JIRA. Authentication failure when communicating with JIRA.");
+                errors.addFieldError("issueJqlMatcher", err);
             }
         }
     }
