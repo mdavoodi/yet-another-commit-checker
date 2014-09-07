@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -151,7 +152,7 @@ public class YaccServiceImpl implements YaccService
         return errors;
     }
 
-    private List<IssueKey> extractJiraIssuesFromCommitMessage(Settings settings, YaccChangeset changeset)
+    private Set<IssueKey> extractJiraIssuesFromCommitMessage(Settings settings, YaccChangeset changeset)
     {
         String message = changeset.getMessage();
 
@@ -168,7 +169,7 @@ public class YaccServiceImpl implements YaccService
             }
         }
 
-        final List<IssueKey> issueKeys = IssueKey.parseIssueKeys(message);
+        final Set<IssueKey> issueKeys = IssueKey.parseIssueKeys(message);
         log.debug("found jira issues {} from commit message: {}", issueKeys, message);
 
         return issueKeys;
@@ -189,12 +190,12 @@ public class YaccServiceImpl implements YaccService
             return errors;
         }
 
-        final List<IssueKey> issues;
-        final List<IssueKey> extractedKeys = extractJiraIssuesFromCommitMessage(settings, changeset);
+        final Set<IssueKey> issues;
+        final Set<IssueKey> extractedKeys = extractJiraIssuesFromCommitMessage(settings, changeset);
         if (settings.getBoolean("ignoreUnknownIssueProjectKeys", false))
         {
             /* Remove issues that contain non-existent project keys */
-            issues = Lists.newArrayList();
+            issues = new HashSet<IssueKey>();
             for (IssueKey issueKey : extractedKeys) {
                 try
                 {

@@ -1,8 +1,7 @@
 package com.isroot.stash.plugin;
 
-import com.google.common.collect.Lists;
-
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,9 +14,10 @@ public class IssueKey
      * Parse any issue keys (i.e., strings that match the standard issue key format) found within the given input.
      *
      * @param input The input string to be parsed for issue keys.
+     * @return The issue keys found
      */
-    static public List<IssueKey> parseIssueKeys (String input) {
-        List<IssueKey> issueKeys = Lists.newArrayList();
+    static public Set<IssueKey> parseIssueKeys (String input) {
+        Set<IssueKey> issueKeys = new HashSet<IssueKey>();
         Matcher matcher = ISSUE_PATTERN.matcher(input);
         while (matcher.find())
         {
