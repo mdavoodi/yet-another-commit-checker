@@ -322,6 +322,20 @@ public class YaccServiceImplTest
     }
 
     @Test
+    public void testCheckRefChange_commitMessageRegex_commitMessageMatchesRegexMultilineWildcard() throws Exception
+    {
+        when(settings.getString("commitMessageRegex")).thenReturn("(DEMO-\\d+).*");
+        when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
+
+        YaccChangeset changeset = mockChangeset();
+        when(changeset.getMessage()).thenReturn("DEMO-1\nDEMO-2");
+        when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(changeset));
+
+        List<String> errors = yaccService.checkRefChange(null, settings, mockRefChange());
+        assertThat(errors).isEmpty();
+    }
+
+    @Test
     public void testCheckRefChange_commitMessageRegex_rejectIfCommitMessageDoesNotMatchRegex() throws Exception
     {
         when(settings.getString("commitMessageRegex")).thenReturn("[a-z ]+");
