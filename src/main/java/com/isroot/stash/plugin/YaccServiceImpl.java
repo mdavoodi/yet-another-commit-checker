@@ -301,8 +301,8 @@ public class YaccServiceImpl implements YaccService
 
         if (requireMatchingAuthorEmail && !changeset.getCommitter().getEmailAddress().toLowerCase().equals(stashUser.getEmailAddress().toLowerCase()))
         {
-            errors.add(String.format("expected committer email '%s' but found '%s'", stashUser.getEmailAddress(),
-                    changeset.getCommitter().getEmailAddress()));
+            errors.add(String.format("expected committer email '%s' but found '%s'.  To correct this error type: git config --global user.email \"%s\"", stashUser.getEmailAddress(),
+                    changeset.getCommitter().getEmailAddress(), stashUser.getEmailAddress()));
         }
 
         return errors;
@@ -319,8 +319,8 @@ public class YaccServiceImpl implements YaccService
 
         if (requireMatchingAuthorName && !changeset.getCommitter().getName().toLowerCase().equals(stashUser.getDisplayName().toLowerCase()))
         {
-            errors.add(String.format("expected committer name '%s' but found '%s'", stashUser.getDisplayName(),
-                    changeset.getCommitter().getName()));
+            errors.add(String.format("expected committer name '%s' but found '%s'.  To correct this error type: git config --global user.name \"%s\"", stashUser.getDisplayName(),
+                    changeset.getCommitter().getName(), stashUser.getDisplayName()));
         }
 
         return errors;

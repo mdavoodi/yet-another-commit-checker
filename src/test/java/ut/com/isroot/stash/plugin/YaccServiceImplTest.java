@@ -75,7 +75,7 @@ public class YaccServiceImplTest
         when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(changeset));
 
         List<String> errors = yaccService.checkRefChange(null, settings, mockRefChange());
-       	assertThat(errors).contains("refs/heads/master: deadbeef: expected committer name 'John Smith' but found 'Incorrect Name'");
+       	assertThat(errors).contains("refs/heads/master: deadbeef: expected committer name 'John Smith' but found 'Incorrect Name'.  To correct this error type: git config --global user.name \"John Smith\"");
     }
 
     @Test
@@ -120,7 +120,7 @@ public class YaccServiceImplTest
         when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(changeset));
 
 		List<String> errors = yaccService.checkRefChange(null, settings, mockRefChange());
-		assertThat(errors).contains("refs/heads/master: deadbeef: expected committer email 'correct@email.com' but found 'wrong@email.com'");
+		assertThat(errors).contains("refs/heads/master: deadbeef: expected committer email 'correct@email.com' but found 'wrong@email.com'.  To correct this error type: git config --global user.email \"correct@email.com\"");
     }
 
     @Test
@@ -424,9 +424,10 @@ public class YaccServiceImplTest
         when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(changeset));
 
         List<String> errors = yaccService.checkRefChange(null, settings, mockTagChange());
-        assertThat(errors).contains("refs/tags/tag: deadbeef: expected committer name 'John Smith' but found 'Incorrect Name'");
-        assertThat(errors).contains("refs/tags/tag: deadbeef: expected committer email 'correct@email.com' but found 'wrong@email.com'");
+        assertThat(errors).contains("refs/tags/tag: deadbeef: expected committer name 'John Smith' but found 'Incorrect Name'.  To correct this error type: git config --global user.name \"John Smith\"");
+        assertThat(errors).contains("refs/tags/tag: deadbeef: expected committer email 'correct@email.com' but found 'wrong@email.com'.  To correct this error type: git config --global user.email \"correct@email.com\"");
     }
+
 
     @Test
     public void testCheckRefChange_tag_doesntCheckRegex() throws Exception
