@@ -6,6 +6,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.RepositorySettingsValidator;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.setting.SettingsValidationErrors;
+import com.isroot.stash.plugin.jira.JiraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

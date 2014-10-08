@@ -1,4 +1,4 @@
-package com.isroot.stash.plugin;
+package com.isroot.stash.plugin.changeset;
 
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.Repository;

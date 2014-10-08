@@ -1,4 +1,4 @@
-package ut.com.isroot.stash.plugin;
+package ut.com.isroot.stash.plugin.jira;
 
 import com.atlassian.applinks.api.ApplicationLink;
 import com.atlassian.applinks.api.ApplicationLinkRequest;
@@ -6,9 +6,9 @@ import com.atlassian.applinks.api.ApplicationLinkService;
 import com.atlassian.applinks.api.application.jira.JiraApplicationType;
 import com.atlassian.sal.api.net.Request;
 import com.atlassian.sal.api.net.ResponseStatusException;
-import com.isroot.stash.plugin.IssueKey;
-import com.isroot.stash.plugin.JiraService;
-import com.isroot.stash.plugin.JiraServiceImpl;
+import com.isroot.stash.plugin.jira.IssueKey;
+import com.isroot.stash.plugin.jira.JiraService;
+import com.isroot.stash.plugin.jira.JiraServiceImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

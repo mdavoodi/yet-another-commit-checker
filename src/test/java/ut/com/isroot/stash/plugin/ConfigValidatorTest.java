@@ -5,7 +5,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.setting.SettingsValidationErrors;
 import com.isroot.stash.plugin.ConfigValidator;
-import com.isroot.stash.plugin.JiraService;
+import com.isroot.stash.plugin.jira.JiraService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

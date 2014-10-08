@@ -10,6 +10,10 @@ import com.atlassian.stash.user.StashAuthenticationContext;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserType;
 import com.google.common.collect.Lists;
+import com.isroot.stash.plugin.changeset.ChangesetsService;
+import com.isroot.stash.plugin.changeset.YaccChangeset;
+import com.isroot.stash.plugin.jira.IssueKey;
+import com.isroot.stash.plugin.jira.JiraService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

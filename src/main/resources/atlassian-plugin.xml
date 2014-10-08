@@ -26,12 +26,12 @@
 
 	<component-import key="applicationLinkService" interface="com.atlassian.applinks.api.ApplicationLinkService" />
 
-    <component key="changesetsService" class="com.isroot.stash.plugin.ChangesetsServiceImpl" public="true">
-        <interface>com.isroot.stash.plugin.ChangesetsService</interface>
+    <component key="changesetsService" class="com.isroot.stash.plugin.changeset.ChangesetsServiceImpl" public="true">
+        <interface>com.isroot.stash.plugin.changeset.ChangesetsService</interface>
     </component>
 
-    <component key="jiraService" class="com.isroot.stash.plugin.JiraServiceImpl" public="true">
-        <interface>com.isroot.stash.plugin.JiraService</interface>
+    <component key="jiraService" class="com.isroot.stash.plugin.jira.JiraServiceImpl" public="true">
+        <interface>com.isroot.stash.plugin.jira.JiraService</interface>
     </component>
 
     <component key="yaccService" class="com.isroot.stash.plugin.YaccServiceImpl" public="true">

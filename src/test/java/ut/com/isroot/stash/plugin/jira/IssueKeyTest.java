@@ -1,8 +1,8 @@
-package ut.com.isroot.stash.plugin;
+package ut.com.isroot.stash.plugin.jira;
 
 import com.google.common.collect.Lists;
-import com.isroot.stash.plugin.InvalidIssueKeyException;
-import com.isroot.stash.plugin.IssueKey;
+import com.isroot.stash.plugin.jira.InvalidIssueKeyException;
+import com.isroot.stash.plugin.jira.IssueKey;
 import org.junit.Test;
 
 import java.util.List;
