@@ -38,6 +38,10 @@
         <interface>com.isroot.stash.plugin.YaccService</interface>
     </component>
 
+    <component key="bundle" class="com.isroot.stash.plugin.localization.ResourceBundleServiceImpl" public="true">
+        <interface>com.isroot.stash.plugin.localization.ResourceBundleService</interface>
+    </component>
+
 	<repository-hook key="yaccHook" name="Yet Another Commit Checker"  class="com.isroot.stash.plugin.YaccHook">
 		<description>Yet Another Commit Checker pre-receive hook.</description>
 		<config-form name="Yacc Hook Config" key="yaccHook-config">

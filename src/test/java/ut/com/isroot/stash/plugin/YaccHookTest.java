@@ -9,6 +9,7 @@ import com.atlassian.stash.setting.Settings;
 import com.google.common.collect.Lists;
 import com.isroot.stash.plugin.YaccHook;
 import com.isroot.stash.plugin.YaccService;
+import com.isroot.stash.plugin.localization.ResourceBundleService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,6 +33,7 @@ public class YaccHookTest
 	@Mock private YaccService yaccService;
 	@Mock private HookResponse hookResponse;
 	@Mock private RepositoryHookContext repositoryHookContext;
+    @Mock private ResourceBundleService bundle;
 
 	private YaccHook yaccHook;
 
@@ -40,7 +42,7 @@ public class YaccHookTest
 	{
 		MockitoAnnotations.initMocks(this);
 
-		yaccHook = new YaccHook(yaccService);
+		yaccHook = new YaccHook(yaccService, bundle);
 
 		when(hookResponse.err()).thenReturn(mock(PrintWriter.class));
 	}
@@ -51,7 +53,7 @@ public class YaccHookTest
 		RefChange refChange = mock(RefChange.class);
 		when(refChange.getType()).thenReturn(RefChangeType.DELETE);
 
-	 	boolean allowed = yaccHook.onReceive(null, Lists.newArrayList(refChange), null);
+	 	boolean allowed = yaccHook.onReceive(mock(RepositoryHookContext.class), Lists.newArrayList(refChange), null);
 		assertThat(allowed).isTrue();
 		verifyZeroInteractions(yaccService);
 	}
@@ -74,7 +76,7 @@ public class YaccHookTest
 
 		yaccHook.onReceive(repositoryHookContext, Lists.newArrayList(mock(RefChange.class)), hookResponse);
 
-		verify(hookResponse.err()).println(YaccHook.ERROR_BEARS);
+		verify(hookResponse.err()).println(String.format(YaccHook.ERROR_BEARS, null));
 		verify(hookResponse.err()).println("error1");
 		verify(hookResponse.err()).println("error2");
 	}

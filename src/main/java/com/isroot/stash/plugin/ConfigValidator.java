@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -37,6 +38,7 @@ public class ConfigValidator implements RepositorySettingsValidator
     {
         validationRegex(settings, errors, "commitMessageRegex");
         validationRegex(settings, errors, "excludeByRegex");
+        validateLanguage(settings, errors, "messagesLang");
 
         if(settings.getBoolean("requireJiraIssue", false))
         {
@@ -86,5 +88,21 @@ public class ConfigValidator implements RepositorySettingsValidator
             }
         }
 
+    }
+
+    private void validateLanguage(Settings settings, SettingsValidationErrors errors, String messagesLang)
+    {
+        String locale = settings.getString(messagesLang);
+        if (! isNullOrEmpty(locale))
+        {
+            try
+            {
+                new Locale(locale).getISO3Language();
+            }
+            catch (Exception e)
+            {
+                errors.addFieldError(messagesLang, "Language code is invalid or not supported: " + e.getMessage());
+            }
+        }
     }
 }

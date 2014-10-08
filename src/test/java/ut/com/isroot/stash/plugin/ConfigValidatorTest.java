@@ -155,4 +155,24 @@ public class ConfigValidatorTest
                 ")");
     }
 
+    @Test
+    public void testValidate_messagesLang_ok() {
+        when(settings.getString("messagesLang")).thenReturn("en");
+
+        configValidator.validate(settings, settingsValidationErrors, repository);
+
+        verify(settings).getString("messagesLang");
+        verifyZeroInteractions(settingsValidationErrors);
+    }
+
+    @Test
+    public void testValidate_messagesLang_error() {
+        when(settings.getString("messagesLang")).thenReturn("invalid_lang");
+
+        configValidator.validate(settings, settingsValidationErrors, repository);
+
+        verify(settings).getString("messagesLang");
+        verify(settingsValidationErrors).addFieldError("messagesLang", "Language code is invalid or not supported: Couldn't find 3-letter language code for invalid_lang");
+    }
+
 }

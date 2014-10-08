@@ -16,6 +16,7 @@ import com.isroot.stash.plugin.jira.JiraService;
 import com.isroot.stash.plugin.changeset.YaccChangeset;
 import com.isroot.stash.plugin.YaccService;
 import com.isroot.stash.plugin.YaccServiceImpl;
+import com.isroot.stash.plugin.localization.ResourceBundleService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,6 +49,7 @@ public class YaccServiceImplTest
     @Mock private CredentialsRequiredException credRequired;
     @Mock private Settings settings;
     @Mock private StashUser stashUser;
+    @Mock private ResourceBundleService bundle;
 
     private YaccService yaccService;
 
@@ -57,7 +60,7 @@ public class YaccServiceImplTest
 
         MockitoAnnotations.initMocks(this);
 
-        yaccService = new YaccServiceImpl(stashAuthenticationContext, changesetsService, jiraService);
+        yaccService = new YaccServiceImpl(stashAuthenticationContext, changesetsService, jiraService, bundle);
 
         when(stashAuthenticationContext.getCurrentUser()).thenReturn(stashUser);
 	}
@@ -68,6 +71,7 @@ public class YaccServiceImplTest
         when(settings.getBoolean("requireMatchingAuthorName", false)).thenReturn(true);
         when(stashUser.getType()).thenReturn(UserType.NORMAL);
         when(stashUser.getDisplayName()).thenReturn("John Smith");
+        when(bundle.getMessage(anyString(), any(), any())).thenReturn("expected committer name 'John Smith' but found 'Incorrect Name'");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getCommitter().getName()).thenReturn("Incorrect Name");
@@ -129,6 +133,7 @@ public class YaccServiceImplTest
         when(settings.getBoolean("requireMatchingAuthorEmail", false)).thenReturn(true);
         when(stashUser.getType()).thenReturn(UserType.NORMAL);
         when(stashUser.getEmailAddress()).thenReturn("correct@email.com");
+        when(bundle.getMessage(anyString(), any(), any())).thenReturn("expected committer email 'correct@email.com' but found 'wrong@email.com'");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getCommitter().getEmailAddress()).thenReturn("wrong@email.com");
@@ -190,6 +195,7 @@ public class YaccServiceImplTest
     {
         when(settings.getBoolean("requireJiraIssue", false)).thenReturn(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(false);
+        when(bundle.getMessage(anyString())).thenReturn("Unable to verify JIRA issue because JIRA Application Link does not exist");
 
         Set<YaccChangeset> changesets = Sets.newHashSet(mockChangeset());
         when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(changesets);
@@ -203,6 +209,7 @@ public class YaccServiceImplTest
     {
         when(settings.getBoolean("requireJiraIssue", false)).thenReturn(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
+        when(bundle.getMessage(anyString())).thenReturn("No JIRA Issue found in commit message.");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("this commit message has no jira issues. abc-123 is not a valid issue because it is lowercase.");
@@ -241,6 +248,7 @@ public class YaccServiceImplTest
         when(settings.getBoolean("ignoreUnknownIssueProjectKeys", false)).thenReturn(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
         when(jiraService.doesProjectExist("UTF")).thenReturn(false);
+        when(bundle.getMessage(anyString())).thenReturn("No JIRA Issue found in commit message.");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("this commit message has no jira issues. UTF-8 is not a valid issue because it has an invalid project key.");
@@ -291,6 +299,9 @@ public class YaccServiceImplTest
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
         when(jiraService.doesIssueExist(any(IssueKey.class))).thenThrow(credRequired);
         when(credRequired.getAuthorisationURI()).thenReturn(new URI("http://localhost/link"));
+        when(bundle.getMessage(anyString(), any()))
+                .thenReturn("ABC-123: Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA.")
+                .thenReturn("To authenticate, visit http://localhost/link in a web browser.");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("ABC-123: this commit has valid issue id");
@@ -311,6 +322,9 @@ public class YaccServiceImplTest
         when(jiraService.doesIssueExist(any(IssueKey.class))).thenThrow(responseException);
         when(responseException.getCause()).thenReturn(credRequired);
         when(credRequired.getAuthorisationURI()).thenReturn(new URI("http://localhost/link"));
+        when(bundle.getMessage(anyString(), any()))
+                .thenReturn("ABC-123: Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA.")
+                .thenReturn("To authenticate, visit http://localhost/link in a web browser.");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("ABC-123: this commit has valid issue id");
@@ -342,6 +356,7 @@ public class YaccServiceImplTest
     {
         when(settings.getString("commitMessageRegex")).thenReturn("[a-z ]+");
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
+        when(bundle.getMessage(anyString(), any())).thenReturn("commit message doesn't match regex: [a-z ]+");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("123 does not match regex because it contains numbers");
@@ -406,6 +421,9 @@ public class YaccServiceImplTest
         when(stashUser.getType()).thenReturn(UserType.NORMAL);
         when(stashUser.getDisplayName()).thenReturn("John Smith");
         when(stashUser.getEmailAddress()).thenReturn("correct@email.com");
+        when(bundle.getMessage(anyString(), any(), any()))
+                .thenReturn("expected committer name 'John Smith' but found 'Incorrect Name'")
+                .thenReturn("expected committer email 'correct@email.com' but found 'wrong@email.com'");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getCommitter().getName()).thenReturn("Incorrect Name");
