@@ -63,7 +63,6 @@ public class ResourceBundleTest {
         for (String key : Arrays.asList("errorBearsMessage", "jira.noIssueInCommit")) {
             String value = bundle.getMessage(key);
             Assert.assertNotNull(value);
-            System.out.println(value);
         }
     }
 }

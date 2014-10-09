@@ -208,6 +208,7 @@ public class YaccServiceImpl implements YaccService
                 for (IssueKey issueKey : extractedKeys) {
                     if (jiraService.doesProjectExist(issueKey.getProjectKey()))
                     {
+                        log.trace("valid project found for jira issue: {}", issueKey);
                         issues.add(issueKey);
                     }
                 }
@@ -243,11 +244,11 @@ public class YaccServiceImpl implements YaccService
             String excludeByRegex = settings.getString("excludeByRegex");
             if (isNullOrEmpty(excludeByRegex))
             {
-                errors.add(getMessage("jira.noIssueInCommit"));
+                errors.add(getMessage("jira.noIssueInCommit", changeset.getMessage()));
             }
             else
             {
-                errors.add(getMessage("noIssueInCommitAndNotExcludeRegex", excludeByRegex));
+                errors.add(getMessage("noIssueInCommitAndNotExcludeRegex", changeset.getMessage(), excludeByRegex));
             }
         }
 

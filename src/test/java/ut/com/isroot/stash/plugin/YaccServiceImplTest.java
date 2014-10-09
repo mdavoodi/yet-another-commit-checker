@@ -209,7 +209,7 @@ public class YaccServiceImplTest
     {
         when(settings.getBoolean("requireJiraIssue", false)).thenReturn(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
-        when(bundle.getMessage(anyString())).thenReturn("No JIRA Issue found in commit message.");
+        when(bundle.getMessage(anyString(), any(Object[].class))).thenReturn("No JIRA Issue found in commit message.");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("this commit message has no jira issues. abc-123 is not a valid issue because it is lowercase.");
@@ -248,7 +248,7 @@ public class YaccServiceImplTest
         when(settings.getBoolean("ignoreUnknownIssueProjectKeys", false)).thenReturn(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
         when(jiraService.doesProjectExist("UTF")).thenReturn(false);
-        when(bundle.getMessage(anyString())).thenReturn("No JIRA Issue found in commit message.");
+        when(bundle.getMessage(anyString(), any(Object[].class))).thenReturn("No JIRA Issue found in commit message.");
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("this commit message has no jira issues. UTF-8 is not a valid issue because it has an invalid project key.");
