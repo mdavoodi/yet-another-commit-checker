@@ -1,7 +1,5 @@
 package ut.com.isroot.stash.plugin;
 
-import com.atlassian.applinks.api.CredentialsRequiredException;
-import com.atlassian.sal.api.net.ResponseException;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
@@ -9,9 +7,11 @@ import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.user.StashAuthenticationContext;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.isroot.stash.plugin.ChangesetsService;
 import com.isroot.stash.plugin.IssueKey;
+import com.isroot.stash.plugin.JiraLookupsException;
 import com.isroot.stash.plugin.JiraService;
 import com.isroot.stash.plugin.YaccChangeset;
 import com.isroot.stash.plugin.YaccService;
@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
@@ -43,8 +42,6 @@ public class YaccServiceImplTest
     @Mock private StashAuthenticationContext stashAuthenticationContext;
     @Mock private ChangesetsService changesetsService;
     @Mock private JiraService jiraService;
-    @Mock private ResponseException responseException;
-    @Mock private CredentialsRequiredException credRequired;
     @Mock private Settings settings;
     @Mock private StashUser stashUser;
 
@@ -285,41 +282,20 @@ public class YaccServiceImplTest
     }
 
     @Test
-    public void testCheckRefChange_requireJiraIssue_errorReturnedIfNoJiraAuth() throws Exception
+    public void testCheckRefChange_requireJiraIssue_errorReturned() throws Exception
     {
         when(settings.getBoolean("requireJiraIssue", false)).thenReturn(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
-        when(jiraService.doesIssueExist(any(IssueKey.class))).thenThrow(credRequired);
-        when(credRequired.getAuthorisationURI()).thenReturn(new URI("http://localhost/link"));
+        JiraLookupsException ex = mockJiraLookupsException("ERROR1", "ERROR2");
+        when(jiraService.doesIssueExist(any(IssueKey.class))).thenThrow(ex);
 
         YaccChangeset changeset = mockChangeset();
         when(changeset.getMessage()).thenReturn("ABC-123: this commit has valid issue id");
         when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(changeset));
 
-
         List<String> errors = yaccService.checkRefChange(null, settings, mockRefChange());
-        assertThat(errors).contains("refs/heads/master: deadbeef: ABC-123: Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA.");
-        assertThat(errors).contains("refs/heads/master: deadbeef: To authenticate, visit http://localhost/link in a web browser.");
-        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"));
-    }
-
-    @Test
-    public void testCheckRefChange_requireJiraIssue_errorReturnedIfJiraAuthenticationFails() throws Exception
-    {
-        when(settings.getBoolean("requireJiraIssue", false)).thenReturn(true);
-        when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
-        when(jiraService.doesIssueExist(any(IssueKey.class))).thenThrow(responseException);
-        when(responseException.getCause()).thenReturn(credRequired);
-        when(credRequired.getAuthorisationURI()).thenReturn(new URI("http://localhost/link"));
-
-        YaccChangeset changeset = mockChangeset();
-        when(changeset.getMessage()).thenReturn("ABC-123: this commit has valid issue id");
-        when(changesetsService.getNewChangesets(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(changeset));
-
-
-        List<String> errors = yaccService.checkRefChange(null, settings, mockRefChange());
-        assertThat(errors).contains("refs/heads/master: deadbeef: ABC-123: Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA.");
-        assertThat(errors).contains("refs/heads/master: deadbeef: To authenticate, visit http://localhost/link in a web browser.");
+        assertThat(errors).contains("refs/heads/master: deadbeef: ERROR1");
+        assertThat(errors).contains("refs/heads/master: deadbeef: ERROR2");
         verify(jiraService).doesIssueExist(new IssueKey("ABC-123"));
     }
 
@@ -496,5 +472,13 @@ public class YaccServiceImplTest
         when(refChange.getRefId()).thenReturn("refs/tags/tag");
         when(refChange.getType()).thenReturn(RefChangeType.ADD);
         return refChange;
+    }
+    
+    private JiraLookupsException mockJiraLookupsException(String ... errors)
+    {
+        JiraLookupsException ex = mock(JiraLookupsException.class);
+        when(ex.getPrintableErrors()).thenReturn(ImmutableList.copyOf(errors));
+        
+        return ex;
     }
 }

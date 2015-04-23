@@ -1,7 +1,5 @@
 package com.isroot.stash.plugin;
 
-import com.atlassian.applinks.api.CredentialsRequiredException;
-import com.atlassian.sal.api.net.ResponseException;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.git.GitRefPattern;
@@ -14,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -153,7 +152,7 @@ public class YaccServiceImpl implements YaccService
         return errors;
     }
 
-    private List<IssueKey> extractJiraIssuesFromCommitMessage(Settings settings, YaccChangeset changeset)
+    private Set<IssueKey> extractJiraIssuesFromCommitMessage(Settings settings, YaccChangeset changeset)
     {
         String message = changeset.getMessage();
 
@@ -170,7 +169,7 @@ public class YaccServiceImpl implements YaccService
             }
         }
 
-        final List<IssueKey> issueKeys = IssueKey.parseIssueKeys(message);
+        final Set<IssueKey> issueKeys = IssueKey.parseIssueKeys(message);
         log.debug("found jira issues {} from commit message: {}", issueKeys, message);
 
         return issueKeys;
@@ -191,37 +190,31 @@ public class YaccServiceImpl implements YaccService
             return errors;
         }
 
-        final List<IssueKey> issues;
-        try {
-            final List<IssueKey> extractedKeys = extractJiraIssuesFromCommitMessage(settings, changeset);
-            if (settings.getBoolean("ignoreUnknownIssueProjectKeys", false))
-            {
-                /* Remove issues that contain non-existent project keys */
-                issues = Lists.newArrayList();
-                for (IssueKey issueKey : extractedKeys) {
+        final Set<IssueKey> issues;
+        final Set<IssueKey> extractedKeys = extractJiraIssuesFromCommitMessage(settings, changeset);
+        if (settings.getBoolean("ignoreUnknownIssueProjectKeys", false))
+        {
+            /* Remove issues that contain non-existent project keys */
+            issues = new HashSet<IssueKey>();
+            for (IssueKey issueKey : extractedKeys) {
+                try
+                {
                     if (jiraService.doesProjectExist(issueKey.getProjectKey()))
                     {
                         issues.add(issueKey);
                     }
                 }
-            }
-            else
-            {
-                issues = extractedKeys;
+                catch (JiraLookupsException e)
+                {
+                    errors.add("Unable to validate JIRA projects");
+                    errors.add("Some JIRA instances returned errors:");
+                    errors.addAll(e.getPrintableErrors());
+                }
             }
         }
-        catch(CredentialsRequiredException e)
+        else
         {
-            log.error("communication error while validating issues", e);
-            errors.add(String.format("Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA."));
-            errors.add(String.format("To authenticate, visit %s in a web browser.", e.getAuthorisationURI().toASCIIString()));
-            return errors;
-        }
-        catch(ResponseException e)
-        {
-            log.error("unexpected exception while trying to validate JIRA issues", e);
-            errors.add(String.format("Unable to validate JIRA issues due to an unexpected exception. Please see stack trace in logs."));
-            return errors;
+            issues = extractedKeys;
         }
 
         if(issues.isEmpty() == false)
@@ -256,26 +249,14 @@ public class YaccServiceImpl implements YaccService
                 {
                     if (!jiraService.doesIssueMatchJqlQuery(jqlQuery, issueKey))
                     {
-                        errors.add(String.format("%s: JIRA Issue does not match JQL Query: %s", issueKey, jqlQuery));
+                        errors.add(String.format("%s: JIRA Issue does not match JQL Query: %s", issueKey.getFullyQualifiedIssueKey(), jqlQuery));
                     }
                 }
             }
         }
-        catch(CredentialsRequiredException e)
+        catch (JiraLookupsException e)
         {
-            errors.add(String.format("%s: Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA.", issueKey.getFullyQualifiedIssueKey()));
-            errors.add(String.format("To authenticate, visit %s in a web browser.", e.getAuthorisationURI().toASCIIString()));
-        }
-        catch(ResponseException e)
-        {
-            if (e.getCause() instanceof CredentialsRequiredException) {
-                CredentialsRequiredException cred = (CredentialsRequiredException)e.getCause();
-                errors.add(String.format("%s: Unable to validate JIRA issue because there was an authentication failure when communicating with JIRA.", issueKey.getFullyQualifiedIssueKey()));
-                errors.add(String.format("To authenticate, visit %s in a web browser.", cred.getAuthorisationURI().toASCIIString()));
-            } else {
-                log.error("unexpected exception while trying to validate JIRA issue", e);
-                errors.add(String.format("%s: Unable to validate JIRA issue due to an unexpected exception. Please see stack trace in logs.", issueKey.getFullyQualifiedIssueKey()));
-            }
+            errors.addAll(e.getPrintableErrors());
         }
 
         return errors;

@@ -1,20 +1,21 @@
 package ut.com.isroot.stash.plugin;
 
-import com.atlassian.applinks.api.CredentialsRequiredException;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.setting.SettingsValidationErrors;
+import com.google.common.collect.ImmutableList;
 import com.isroot.stash.plugin.ConfigValidator;
+import com.isroot.stash.plugin.JiraLookupsException;
 import com.isroot.stash.plugin.JiraService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import static org.mockito.Matchers.anyString;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
 
 /**
  * @author Sean Ford
@@ -50,41 +51,42 @@ public class ConfigValidatorTest
     }
 
     @Test
-    public void testValidate_authenticationErrorWhenValidatingQueryReturnsError() throws Exception
+    public void testValidate_ErrorWhenValidatingQueryReturnsError() throws Exception
     {
         when(settings.getString("issueJqlMatcher")).thenReturn("assignee is not empty");
-        when(jiraService.isJqlQueryValid(anyString())).thenThrow(CredentialsRequiredException.class);
+
+        when(jiraService.checkJqlQuery(anyString())).thenReturn(ImmutableList.of("MOCK ERROR"));
 
         configValidator.validate(settings, settingsValidationErrors, repository);
 
         verify(settings).getString("issueJqlMatcher");
-        verify(jiraService).isJqlQueryValid("assignee is not empty");
-        verify(settingsValidationErrors).addFieldError("issueJqlMatcher", "Unable to validate JQL query with JIRA. Authentication failure when communicating with JIRA.");
+        verify(jiraService).checkJqlQuery("assignee is not empty");
+        verify(settingsValidationErrors).addFieldError("issueJqlMatcher", "MOCK ERROR");
     }
 
     @Test
     public void testValidate_invalidJqlQueryAddsValidationError() throws Exception
     {
         when(settings.getString("issueJqlMatcher")).thenReturn("this jql query is invalid");
-        when(jiraService.isJqlQueryValid(anyString())).thenReturn(false);
+        when(jiraService.checkJqlQuery(anyString())).thenReturn(ImmutableList.of("INVALID"));
 
         configValidator.validate(settings, settingsValidationErrors, repository);
 
         verify(settings).getString("issueJqlMatcher");
-        verify(jiraService).isJqlQueryValid("this jql query is invalid");
-        verify(settingsValidationErrors).addFieldError("issueJqlMatcher", "The JQL query syntax is invalid.");
+        verify(jiraService).checkJqlQuery("this jql query is invalid");
+        verify(settingsValidationErrors).addFieldError("issueJqlMatcher", "INVALID");
     }
 
     @Test
     public void testValidate_validJqlQueryIsAccepted() throws Exception
     {
         when(settings.getString("issueJqlMatcher")).thenReturn("assignee is not empty");
-        when(jiraService.isJqlQueryValid(anyString())).thenReturn(true);
+        when(jiraService.checkJqlQuery(anyString())).thenReturn(ImmutableList.<String>of());
 
         configValidator.validate(settings, settingsValidationErrors, repository);
 
         verify(settings).getString("issueJqlMatcher");
-        verify(jiraService).isJqlQueryValid("assignee is not empty");
+        verify(jiraService).checkJqlQuery("assignee is not empty");
         verifyZeroInteractions(settingsValidationErrors);
     }
 
