@@ -142,7 +142,7 @@ public class YaccServiceImpl implements YaccService
         String regex = settings.getString("commitMessageRegex");
         if(isNullOrEmpty(regex) == false)
         {
-            Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
+            Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE | Pattern.DOTALL);
             Matcher matcher = pattern.matcher(changeset.getMessage());
             if(matcher.matches() == false)
             {
