@@ -65,7 +65,7 @@ public final class YaccHook implements PreReceiveRepositoryHook
         }
         else
         {
-            hookResponse.err().println(ERROR_BEARS);
+            //hookResponse.err().println(ERROR_BEARS);
 
             for (String error : errors)
             {

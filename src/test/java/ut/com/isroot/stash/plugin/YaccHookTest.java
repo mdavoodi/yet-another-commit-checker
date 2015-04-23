@@ -74,7 +74,7 @@ public class YaccHookTest
 
 		yaccHook.onReceive(repositoryHookContext, Lists.newArrayList(mock(RefChange.class)), hookResponse);
 
-		verify(hookResponse.err()).println(YaccHook.ERROR_BEARS);
+		//verify(hookResponse.err()).println(YaccHook.ERROR_BEARS);
 		verify(hookResponse.err()).println("error1");
 		verify(hookResponse.err()).println("error2");
 	}

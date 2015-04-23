@@ -52,6 +52,12 @@ public class YaccServiceImpl implements YaccService
 
         List<String> errors = Lists.newArrayList();
 
+        if( "0000000000000000000000000000000000000000".equals(refChange.getFromHash()) && !isTag ) {
+            // New branch can be created by anyone from any commit
+            log.debug("Skip checking message or author if this is new branch");
+            return errors;
+        }
+
         Set<YaccChangeset> changesets = changesetsService.getNewChangesets(repository, refChange);
 
         for (YaccChangeset changeset : changesets)

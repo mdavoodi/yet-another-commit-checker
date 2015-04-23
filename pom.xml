@@ -46,6 +46,18 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+
+		<dependency>
+			<groupId>com.atlassian.stash</groupId>
+			<artifactId>stash-service-impl</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
         <dependency>
             <groupId>com.atlassian.stash</groupId>
             <artifactId>stash-api</artifactId>

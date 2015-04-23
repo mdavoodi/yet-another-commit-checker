@@ -1,0 +1,43 @@
+{namespace com.atlassian.stash.repository.hook.ref}
+
+/**
+ * @param config
+ * @param? errors
+ **/
+{template .config}
+<html>
+    <head>
+        <meta name="decorator" content="atl.admin">
+        <title>Yet Another Commit Checker</title>
+    </head>
+    <body>
+	{call aui.group.group}
+	{param content}
+        {call widget.aui.form.form}
+	        {param action: '' /}
+	        {param content}
+		        <h2>Yet Another Commit Checker default configuration. Repository hook configuration wins.</h2>
+		        {call .formContents}
+	        		{param config: $config /}
+	        		{param errors: $errors /}
+			{/call}
+                                {call widget.aui.form.buttons}
+                                    {param content}
+                                        {call widget.aui.form.submit}
+                                            {param id: 'submit' /}
+                                            {param isPrimary: true /}
+                                            {param accessKey: 's' /}
+                                            {param label: stash_i18n('stash.web.button.save', 'Save') /}
+                                        {/call}
+                                        {call widget.aui.form.cancelButton}
+                                            {param href: nav_admin() /}
+                                        {/call}
+                                    {/param}
+                                {/call}
+		{/param}
+	{/call}
+	{/param}
+	{/call}
+    </body>
+</html>
+{/template}

@@ -5,6 +5,7 @@
         <vendor name="${project.organization.name}" url="${project.organization.url}" />
         <param name="plugin-icon">images/pluginIcon.png</param>
         <param name="plugin-logo">images/pluginLogo.png</param>
+        <param name="configure.url">/plugins/servlet/yaccHook/config</param>
     </plugin-info>
 
     <!-- add our i18n resource -->
@@ -20,6 +21,20 @@
 
         <context>yacc</context>
     </web-resource>
+
+        <servlet key="yaccHook-config-servlet" name="YaccHook Configuration Servlet" class="com.isroot.stash.plugin.ConfigServlet">
+                <url-pattern>/yaccHook/*</url-pattern>
+        </servlet>
+
+    <stash-resource key="yaccHook-config-serverside">
+        <directory location="/static/">
+            <include>/**/simple.soy</include>
+            <include>/**/serverside-config.soy</include>
+        </directory>
+        <dependency>com.atlassian.stash.stash-web-plugin:server-soy-templates</dependency>
+        <dependency>com.atlassian.stash.stash-web-plugin:global</dependency>
+    </stash-resource>
+
     
     <!-- import from the product container -->
     <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
@@ -37,13 +52,27 @@
     <component key="yaccService" class="com.isroot.stash.plugin.YaccServiceImpl" public="true">
         <interface>com.isroot.stash.plugin.YaccService</interface>
     </component>
+    <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
 
 	<repository-hook key="yaccHook" name="Yet Another Commit Checker"  class="com.isroot.stash.plugin.YaccHook">
 		<description>Yet Another Commit Checker pre-receive hook.</description>
+                <icon>images/pluginLogo.png</icon>
 		<config-form name="Yacc Hook Config" key="yaccHook-config">
 			<view>com.atlassian.stash.repository.hook.ref.formContents</view>
 			<directory location="/static/" />
 		</config-form>
 		<validator>com.isroot.stash.plugin.ConfigValidator</validator>
 	</repository-hook>
+
+        <pre-receive-hook key="yaccPreReceiveHook" name="Yet Another Commit Checker"  class="com.isroot.stash.plugin.YaccPreReceiveHook">
+		<description>Yet Another Commit Checker pre-receive hook.</description>
+                <icon>images/pluginLogo.png</icon>
+
+		<config-form name="Yacc Hook Config" key="yaccHook-config">
+			<view>com.atlassian.stash.repository.hook.ref.formContents</view>
+                        <directory location="/static/" />
+                </config-form>
+		<validator>com.isroot.stash.plugin.ConfigValidator</validator>
+        </pre-receive-hook>
+
 </atlassian-plugin>
