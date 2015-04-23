@@ -1,4 +1,4 @@
-package com.isroot.stash.plugin;
+package com.isroot.stash.plugin.changeset;
 
 /**
  * Minimal metadata required to verify a changeset.

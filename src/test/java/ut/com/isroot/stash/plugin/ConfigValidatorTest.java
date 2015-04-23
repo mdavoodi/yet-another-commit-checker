@@ -5,7 +5,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.setting.SettingsValidationErrors;
 import com.isroot.stash.plugin.ConfigValidator;
-import com.isroot.stash.plugin.JiraService;
+import com.isroot.stash.plugin.jira.JiraService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -153,6 +153,26 @@ public class ConfigValidatorTest
         verify(settings).getString("commitMessageRegex");
         verify(settingsValidationErrors).addFieldError("commitMessageRegex", "Invalid Regex: Unmatched closing ')'\n" +
                 ")");
+    }
+
+    @Test
+    public void testValidate_messagesLang_ok() {
+        when(settings.getString("messagesLang")).thenReturn("en");
+
+        configValidator.validate(settings, settingsValidationErrors, repository);
+
+        verify(settings).getString("messagesLang");
+        verifyZeroInteractions(settingsValidationErrors);
+    }
+
+    @Test
+    public void testValidate_messagesLang_error() {
+        when(settings.getString("messagesLang")).thenReturn("invalid_lang");
+
+        configValidator.validate(settings, settingsValidationErrors, repository);
+
+        verify(settings).getString("messagesLang");
+        verify(settingsValidationErrors).addFieldError("messagesLang", "Language code is invalid or not supported: Couldn't find 3-letter language code for invalid_lang");
     }
 
 }

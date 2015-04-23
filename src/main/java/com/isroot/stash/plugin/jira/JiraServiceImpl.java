@@ -1,4 +1,4 @@
-package com.isroot.stash.plugin;
+package com.isroot.stash.plugin.jira;
 
 import com.atlassian.applinks.api.ApplicationLink;
 import com.atlassian.applinks.api.ApplicationLinkRequest;

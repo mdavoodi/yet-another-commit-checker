@@ -1,4 +1,4 @@
-package com.isroot.stash.plugin;
+package com.isroot.stash.plugin.jira;
 
 import com.atlassian.applinks.api.CredentialsRequiredException;
 import com.atlassian.sal.api.net.ResponseException;

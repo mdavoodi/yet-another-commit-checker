@@ -1,4 +1,4 @@
-package com.isroot.stash.plugin;
+package com.isroot.stash.plugin.jira;
 
 import com.google.common.collect.Lists;
 

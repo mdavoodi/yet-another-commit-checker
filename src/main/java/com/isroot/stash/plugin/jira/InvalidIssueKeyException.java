@@ -1,4 +1,4 @@
-package com.isroot.stash.plugin;
+package com.isroot.stash.plugin.jira;
 
 /**
  * Thrown when a JIRA issue key can not be parsed.

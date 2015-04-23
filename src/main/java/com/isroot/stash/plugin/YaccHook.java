@@ -6,6 +6,7 @@ import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.google.common.collect.Lists;
+import com.isroot.stash.plugin.localization.ResourceBundleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +33,15 @@ public final class YaccHook implements PreReceiveRepositoryHook
             " `-'     `-'  `-'     `-'  `-'     `-'  `-'     `-'  `-'     `-' \n" +
             "\n" +
             "\n" +
-            "Push rejected.\n";
+            "%s.\n";
 
     private final YaccService yaccService;
+    private final ResourceBundleService bundle;
 
-    public YaccHook(YaccService yaccService)
+    public YaccHook(YaccService yaccService, ResourceBundleService bundle)
     {
         this.yaccService = yaccService;
+        this.bundle = bundle;
     }
 
     @Override
@@ -46,6 +49,8 @@ public final class YaccHook implements PreReceiveRepositoryHook
                              @Nonnull Collection<RefChange> refChanges, @Nonnull HookResponse hookResponse)
     {
         List<String> errors = Lists.newArrayList();
+        // refresh bundle configuration to apply language change
+        bundle.refresh(repositoryHookContext.getSettings());
 
         for (RefChange rf : refChanges)
         {
@@ -65,7 +70,8 @@ public final class YaccHook implements PreReceiveRepositoryHook
         }
         else
         {
-            hookResponse.err().println(ERROR_BEARS);
+            String errorBearsMsg = bundle.getMessage("errorBearsMessage");
+            hookResponse.err().println(String.format(ERROR_BEARS, errorBearsMsg));
 
             for (String error : errors)
             {

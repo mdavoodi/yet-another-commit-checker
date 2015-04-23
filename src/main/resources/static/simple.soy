@@ -32,6 +32,13 @@
 		{param errorTexts: $errors ? $errors['commitMessageRegex'] : null /}
 	{/call}
 
+	{call aui.form.textField}
+		{param id: 'messagesLang' /}
+		{param labelContent: 'Messges Language' /}
+		{param value: $config['messagesLang'] /}
+		{param descriptionText: 'Which language to use for displaying messages in command line. Server locale is default. Use "Tags for Identifying Languages", for example: en, ru.' /}
+		{param errorTexts: $errors ? $errors['messagesLang'] : null /}
+	{/call}
 
   <h3>JIRA Issue Requirements</h3>
 

@@ -1,7 +1,7 @@
-package ut.com.isroot.stash.plugin;
+package ut.com.isroot.stash.plugin.changeset;
 
-import com.isroot.stash.plugin.YaccChangeset;
-import com.isroot.stash.plugin.YaccPerson;
+import com.isroot.stash.plugin.changeset.YaccChangeset;
+import com.isroot.stash.plugin.changeset.YaccPerson;
 import org.junit.Test;
 import static org.fest.assertions.api.Assertions.assertThat;
 
