@@ -1,8 +1,8 @@
 package com.isroot.stash.plugin;
 
+import com.atlassian.stash.commit.Commit;
 import com.atlassian.stash.commit.CommitService;
-import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.content.ChangesetsBetweenRequest;
+import com.atlassian.stash.commit.CommitsBetweenRequest;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
@@ -29,11 +29,11 @@ import java.util.Set;
  * @author Sean Ford
  * @since 2013-10-26
  */
-public class ChangesetsServiceImpl implements ChangesetsService {
+public class CommitsServiceImpl implements CommitsService {
     private final CommitService commitService;
     private final ApplicationPropertiesService applicationPropertiesService;
 
-    public ChangesetsServiceImpl(CommitService commitService, ApplicationPropertiesService applicationPropertiesService) {
+    public CommitsServiceImpl(CommitService commitService, ApplicationPropertiesService applicationPropertiesService) {
         this.commitService = commitService;
         this.applicationPropertiesService = applicationPropertiesService;
     }
@@ -42,7 +42,7 @@ public class ChangesetsServiceImpl implements ChangesetsService {
      * {@inheritDoc}
      */
     @Override
-    public Set<YaccChangeset> getNewChangesets(Repository repository, RefChange refChange) {
+    public Set<YaccCommit> getNewCommits(Repository repository, RefChange refChange) {
         try {
             org.eclipse.jgit.lib.Repository jGitRepo = getJGitRepo(repository);
 
@@ -59,18 +59,18 @@ public class ChangesetsServiceImpl implements ChangesetsService {
              * Stash's API to work out the tag type doesn't work (see STASH-4993)
              * and since we're using JGit anyway, just use it for the whole lot.
              */
-            Set<YaccChangeset> changesets = Sets.newHashSet();
+            Set<YaccCommit> yaccCommits = Sets.newHashSet();
 
             if (refChange.getRefId().startsWith(GitRefPattern.TAGS.getPath())) {
                 if (refChange.getType() == RefChangeType.DELETE) {
                     // Deletes don't leave anything to check
-                    return changesets;
+                    return yaccCommits;
                 }
 
                 RevObject obj = walk.parseAny(ObjectId.fromString(refChange.getToHash()));
                 if (!(obj instanceof RevTag)) {
                     // Just a lightweight tag - nothing to check
-                    return changesets;
+                    return yaccCommits;
                 }
 
                 RevTag tag = (RevTag) obj;
@@ -78,25 +78,25 @@ public class ChangesetsServiceImpl implements ChangesetsService {
                 PersonIdent ident = tag.getTaggerIdent();
                 final String message = tag.getFullMessage();
                 final YaccPerson committer = new YaccPerson(ident.getName(), ident.getEmailAddress());
-                final YaccChangeset yaccChangeset = new YaccChangeset(refChange.getToHash(), committer, message, 1);
+                final YaccCommit yaccCommit = new YaccCommit(refChange.getToHash(), committer, message, 1);
 
-                changesets.add(yaccChangeset);
+                yaccCommits.add(yaccCommit);
             } else {
-                final ChangesetsBetweenRequest request = new ChangesetsBetweenRequest.Builder(repository)
+                final CommitsBetweenRequest request = new CommitsBetweenRequest.Builder(repository)
                         .exclude(getBranches(repository))
                         .include(refChange.getToHash())
                         .build();
 
                 // Make sure to get all of the changes
-                Iterable<Changeset> changes = new PagedIterable<Changeset>(new PageProvider<Changeset>() {
+                Iterable<Commit> commits = new PagedIterable<>(new PageProvider<Commit>() {
                     @Override
-                    public Page<Changeset> get(PageRequest pr) {
-                        return commitService.getChangesetsBetween(request, pr);
+                    public Page<Commit> get(PageRequest pr) {
+                        return commitService.getCommitsBetween(request, pr);
                     }
                 }, 100);
 
-                for (Changeset changeset : changes) {
-                    final RevCommit commit = walk.parseCommit(ObjectId.fromString(changeset.getId()));
+                for (Commit commit : commits) {
+                    final RevCommit revCommit = walk.parseCommit(ObjectId.fromString(commit.getId()));
 
                     /* Note that we use committer, instead of author -- for most commits, these will be identical. Where
                      * this differs is if a patch *author* submits a patch (eg, consider an external contribution), and
@@ -105,16 +105,16 @@ public class ChangesetsServiceImpl implements ChangesetsService {
                      * By validating the committer here, we can allow surrogate commits on behalf of patch submitters,
                      * while still ensuring that the authenticated user is either the author *or* the committer.
                      */
-                    final PersonIdent ident = commit.getCommitterIdent();
-                    final String message = commit.getFullMessage();
+                    final PersonIdent ident = revCommit.getCommitterIdent();
+                    final String message = revCommit.getFullMessage();
                     final YaccPerson committer = new YaccPerson(ident.getName(), ident.getEmailAddress());
-                    final YaccChangeset yaccChangeset = new YaccChangeset(changeset.getId(), committer, message, commit.getParentCount());
+                    final YaccCommit yaccCommit = new YaccCommit(commit.getId(), committer, message, revCommit.getParentCount());
 
-                    changesets.add(yaccChangeset);
+                    yaccCommits.add(yaccCommit);
                 }
             }
 
-            return changesets;
+            return yaccCommits;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

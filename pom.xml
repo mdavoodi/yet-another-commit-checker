@@ -140,6 +140,11 @@
                             <instanceId>stash</instanceId>
                             <version>${stash.version}</version>
                             <dataVersion>${stash.data.version}</dataVersion>
+                            <containerId>tomcat8x</containerId>
+                            <systemPropertyVariables>
+                                <!-- Force Stash to start up synchronously -->
+                                <johnson.spring.lifecycle.synchronousStartup>true</johnson.spring.lifecycle.synchronousStartup>
+                            </systemPropertyVariables>
                         </product>
                     </products>
                 </configuration>
@@ -148,8 +153,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>
@@ -188,9 +194,9 @@
     </build>
     <properties>
         <!-- When updating this, remember to update the marketplace version too -->
-        <stash.version>2.12.0</stash.version>
-        <stash.data.version>2.12.0</stash.data.version>
+        <stash.version>3.7.0</stash.version>
+        <stash.data.version>3.7.0</stash.data.version>
         <amps.version>5.0.13</amps.version>
-        <plugin.testrunner.version>1.1.4</plugin.testrunner.version>
+        <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
     </properties>
 </project>

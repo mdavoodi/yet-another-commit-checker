@@ -32,13 +32,13 @@ public class YaccServiceImpl implements YaccService {
 
 
     private final StashAuthenticationContext stashAuthenticationContext;
-    private final ChangesetsService changesetsService;
+    private final CommitsService commitsService;
     private final JiraService jiraService;
 
-    public YaccServiceImpl(StashAuthenticationContext stashAuthenticationContext, ChangesetsService changesetsService,
+    public YaccServiceImpl(StashAuthenticationContext stashAuthenticationContext, CommitsService commitsService,
                            JiraService jiraService) {
         this.stashAuthenticationContext = stashAuthenticationContext;
-        this.changesetsService = changesetsService;
+        this.commitsService = commitsService;
         this.jiraService = jiraService;
     }
 
@@ -53,21 +53,21 @@ public class YaccServiceImpl implements YaccService {
 
         errors.addAll(new BranchNameCheck(settings, refChange.getRefId()).check());
 
-        Set<YaccChangeset> changesets = changesetsService.getNewChangesets(repository, refChange);
+        Set<YaccCommit> commits = commitsService.getNewCommits(repository, refChange);
 
-        for (YaccChangeset changeset : changesets) {
-            for(YaccError e : checkChangeset(settings, changeset, !isTag)) {
-                errors.add(e.prependText(changeset.getId()));
+        for (YaccCommit commit : commits) {
+            for(YaccError e : checkCommit(settings, commit, !isTag)) {
+                errors.add(e.prependText(commit.getId()));
             }
         }
 
         return errors;
     }
 
-    private List<YaccError> checkChangeset(Settings settings, YaccChangeset changeset, boolean checkMessages) {
-        log.debug("checking commit id={} name={} email={} message={}", changeset.getId(),
-                changeset.getCommitter().getName(), changeset.getCommitter().getEmailAddress(),
-                changeset.getMessage());
+    private List<YaccError> checkCommit(Settings settings, YaccCommit commit, boolean checkMessages) {
+        log.debug("checking commit id={} name={} email={} message={}", commit.getId(),
+                commit.getCommitter().getName(), commit.getCommitter().getEmailAddress(),
+                commit.getMessage());
 
         List<YaccError> errors = Lists.newArrayList();
 
@@ -81,27 +81,27 @@ public class YaccServiceImpl implements YaccService {
             // the ssh access keys use the key comment as the 'name' and don't have emails
             // Neither of these are useful to validate, so just skip them
             if (stashUser.getType() == UserType.NORMAL) {
-                errors.addAll(checkCommitterEmail(settings, changeset, stashUser));
-                errors.addAll(checkCommitterName(settings, changeset, stashUser));
+                errors.addAll(checkCommitterEmail(settings, commit, stashUser));
+                errors.addAll(checkCommitterName(settings, commit, stashUser));
             }
         }
 
-        if(checkMessages && !isCommitExcluded(settings, changeset)) {
-            errors.addAll(checkCommitMessageRegex(settings, changeset));
+        if(checkMessages && !isCommitExcluded(settings, commit)) {
+            errors.addAll(checkCommitMessageRegex(settings, commit));
 
             // Checking JIRA issues might be dependent on the commit message regex, so only proceed if there are no errors.
             if (errors.isEmpty()) {
-                errors.addAll(checkJiraIssues(settings, changeset));
+                errors.addAll(checkJiraIssues(settings, commit));
             }
         }
 
         return errors;
     }
 
-    private boolean isCommitExcluded(Settings settings, YaccChangeset changeset) {
+    private boolean isCommitExcluded(Settings settings, YaccCommit commit) {
         // Exclude Merge Commit setting
-        if(settings.getBoolean("excludeMergeCommits", false) && changeset.getParentCount() > 1) {
-            log.debug("skipping commit {} because it is a merge commit", changeset.getId());
+        if(settings.getBoolean("excludeMergeCommits", false) && commit.getParentCount() > 1) {
+            log.debug("skipping commit {} because it is a merge commit", commit.getId());
 
             return true;
         }
@@ -117,7 +117,7 @@ public class YaccServiceImpl implements YaccService {
 
         if(excludeRegex != null && !excludeRegex.isEmpty()) {
             Pattern pattern = Pattern.compile(excludeRegex);
-            Matcher matcher = pattern.matcher(changeset.getMessage());
+            Matcher matcher = pattern.matcher(commit.getMessage());
             if(matcher.find()) {
                 return true;
             }
@@ -126,13 +126,13 @@ public class YaccServiceImpl implements YaccService {
         return false;
     }
 
-    private List<YaccError> checkCommitMessageRegex(Settings settings, YaccChangeset changeset) {
+    private List<YaccError> checkCommitMessageRegex(Settings settings, YaccCommit commit) {
         List<YaccError> errors = Lists.newArrayList();
 
         String regex = settings.getString("commitMessageRegex");
         if(isNullOrEmpty(regex) == false) {
             Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
-            Matcher matcher = pattern.matcher(changeset.getMessage());
+            Matcher matcher = pattern.matcher(commit.getMessage());
             if(matcher.matches() == false) {
                 errors.add(new YaccError(YaccError.Type.COMMIT_REGEX,
                         "commit message doesn't match regex: " + regex));
@@ -142,8 +142,8 @@ public class YaccServiceImpl implements YaccService {
         return errors;
     }
 
-    private List<IssueKey> extractJiraIssuesFromCommitMessage(Settings settings, YaccChangeset changeset) {
-        String message = changeset.getMessage();
+    private List<IssueKey> extractJiraIssuesFromCommitMessage(Settings settings, YaccCommit commit) {
+        String message = commit.getMessage();
 
         // If a commit message regex is present, see if it contains a group 1 that can be used to located JIRA issues.
         // If not, just ignore it.
@@ -162,7 +162,7 @@ public class YaccServiceImpl implements YaccService {
         return issueKeys;
     }
 
-    private List<YaccError> checkJiraIssues(Settings settings, YaccChangeset changeset) {
+    private List<YaccError> checkJiraIssues(Settings settings, YaccCommit commit) {
         if (!settings.getBoolean("requireJiraIssue", false)) {
             return Lists.newArrayList();
         }
@@ -176,7 +176,7 @@ public class YaccServiceImpl implements YaccService {
 
         final List<IssueKey> issues;
         try {
-            final List<IssueKey> extractedKeys = extractJiraIssuesFromCommitMessage(settings, changeset);
+            final List<IssueKey> extractedKeys = extractJiraIssuesFromCommitMessage(settings, commit);
             if (settings.getBoolean("ignoreUnknownIssueProjectKeys", false)) {
                 /* Remove issues that contain non-existent project keys */
                 issues = Lists.newArrayList();
@@ -242,7 +242,7 @@ public class YaccServiceImpl implements YaccService {
         return errors;
     }
 
-    private List<YaccError> checkCommitterEmail(@Nonnull Settings settings, @Nonnull YaccChangeset changeset, @Nonnull StashUser stashUser) {
+    private List<YaccError> checkCommitterEmail(@Nonnull Settings settings, @Nonnull YaccCommit commit, @Nonnull StashUser stashUser) {
         final boolean requireMatchingAuthorEmail = settings.getBoolean("requireMatchingAuthorEmail", false);
 
         List<YaccError> errors = Lists.newArrayList();
@@ -256,32 +256,32 @@ public class YaccServiceImpl implements YaccService {
             return errors;
         }
 
-        log.debug("requireMatchingAuthorEmail={} authorEmail={} stashEmail={}", requireMatchingAuthorEmail, changeset.getCommitter().getEmailAddress(),
+        log.debug("requireMatchingAuthorEmail={} authorEmail={} stashEmail={}", requireMatchingAuthorEmail, commit.getCommitter().getEmailAddress(),
                 stashUser.getEmailAddress());
 
-        if (requireMatchingAuthorEmail && !changeset.getCommitter().getEmailAddress().toLowerCase().equals(stashUser.getEmailAddress().toLowerCase())) {
+        if (requireMatchingAuthorEmail && !commit.getCommitter().getEmailAddress().toLowerCase().equals(stashUser.getEmailAddress().toLowerCase())) {
             errors.add(new YaccError(YaccError.Type.COMMITTER_EMAIL,
                     String.format("expected committer email '%s' but found '%s'", stashUser.getEmailAddress(),
-                    changeset.getCommitter().getEmailAddress())));
+                    commit.getCommitter().getEmailAddress())));
         }
 
         return errors;
     }
 
-    private List<YaccError> checkCommitterName(@Nonnull Settings settings, @Nonnull YaccChangeset changeset, @Nonnull StashUser stashUser) {
+    private List<YaccError> checkCommitterName(@Nonnull Settings settings, @Nonnull YaccCommit commit, @Nonnull StashUser stashUser) {
         final boolean requireMatchingAuthorName = settings.getBoolean("requireMatchingAuthorName", false);
 
         List<YaccError> errors = Lists.newArrayList();
 
-        log.debug("requireMatchingAuthorName={} authorName={} stashName={}", requireMatchingAuthorName, changeset.getCommitter().getName(),
+        log.debug("requireMatchingAuthorName={} authorName={} stashName={}", requireMatchingAuthorName, commit.getCommitter().getName(),
                 stashUser.getDisplayName());
 
         String name = removeGitCrud(stashUser.getDisplayName());
 
-        if (requireMatchingAuthorName && !changeset.getCommitter().getName().equalsIgnoreCase(name)) {
+        if (requireMatchingAuthorName && !commit.getCommitter().getName().equalsIgnoreCase(name)) {
             errors.add(new YaccError(YaccError.Type.COMMITTER_NAME,
                     String.format("expected committer name '%s' but found '%s'", name,
-                    changeset.getCommitter().getName())));
+                    commit.getCommitter().getName())));
         }
 
         return errors;

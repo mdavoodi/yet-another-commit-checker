@@ -1,18 +1,18 @@
 package com.isroot.stash.plugin;
 
 /**
- * Minimal metadata required to verify a changeset.
+ * Minimal metadata required to verify a commit.
  */
-public class YaccChangeset {
+public class YaccCommit {
     /**
-     * Construct a new changeset instance.
+     * Construct a new commit instance.
      *
-     * @param id Changeset ID (eg, Git hash).
-     * @param committer The changeset committer.
+     * @param id Commit ID (eg, Git hash).
+     * @param committer The committer.
      * @param message Git commit message.
      * @param parentCount The number of parent commits listed in this commit.
      */
-    public YaccChangeset (String id, YaccPerson committer, String message, int parentCount) {
+    public YaccCommit (String id, YaccPerson committer, String message, int parentCount) {
         this.id = id;
         this.committer = committer;
         this.message = removeTrailingNewLine(message);
@@ -34,9 +34,9 @@ public class YaccChangeset {
     }
 
     /**
-     * Return the git changeset ID.
+     * Return the git commit ID.
      *
-     * @return Git changeset ID.
+     * @return Git commit ID.
      */
     public String getId() {
         return id;
@@ -44,7 +44,7 @@ public class YaccChangeset {
 
 
     /**
-     * Return the git committer identity associated with this changeset.
+     * Return the git committer identity associated with this commit.
      *
      * @return Git committer identity.
      */
@@ -53,7 +53,7 @@ public class YaccChangeset {
     }
 
     /**
-     * Return the commit message associated with this changeset.
+     * Return the commit message associated with this commit.
      *
      * @return Commit message.
      */
