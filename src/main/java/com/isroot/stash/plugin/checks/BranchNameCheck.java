@@ -27,7 +27,7 @@ public class BranchNameCheck {
     }
 
     public List<YaccError> check() {
-        List<YaccError> errors = new ArrayList<YaccError>();
+        List<YaccError> errors = new ArrayList<>();
         boolean isBranch = refId.startsWith(GitRefPattern.HEADS.getPath());
 
         Pattern branchNamePattern = getPattern();

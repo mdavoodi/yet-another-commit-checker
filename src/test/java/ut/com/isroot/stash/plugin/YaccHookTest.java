@@ -138,7 +138,7 @@ public class YaccHookTest {
     }
 
     private List<RefChange> getMockRefChanges() {
-        List<RefChange> refChanges = new ArrayList<RefChange>();
+        List<RefChange> refChanges = new ArrayList<>();
         RefChange refChange = mock(RefChange.class);
 
         when(refChange.getRefId()).thenReturn("refs/heads/master");

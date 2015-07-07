@@ -140,7 +140,7 @@ public class JiraServiceImpl implements JiraService {
 
         log.debug("using jql: {}", jqlQuery);
 
-        Map<String, String> request = new HashMap<String, String>();
+        Map<String, String> request = new HashMap<>();
         request.put("jql", jqlQuery);
         req.setEntity(new Gson().toJson(request));
 

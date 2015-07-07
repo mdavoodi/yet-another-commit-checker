@@ -2,6 +2,7 @@ package ut.com.isroot.stash.plugin;
 
 import com.atlassian.applinks.api.ApplicationLink;
 import com.atlassian.applinks.api.ApplicationLinkRequest;
+import com.atlassian.applinks.api.ApplicationLinkRequestFactory;
 import com.atlassian.applinks.api.ApplicationLinkService;
 import com.atlassian.applinks.api.application.jira.JiraApplicationType;
 import com.atlassian.sal.api.net.Request;
@@ -12,9 +13,9 @@ import com.isroot.stash.plugin.JiraServiceImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Answers;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -26,18 +27,25 @@ import static org.mockito.Mockito.when;
  * @author Sean Ford
  * @since 2014-01-15
  */
+@RunWith(MockitoJUnitRunner.class)
 public class JiraServiceImplTest {
     @Mock
-    private ApplicationLinkRequest applicationLinkRequest;
-
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ApplicationLinkService applicationLinkService;
+    @Mock
+    private ApplicationLink applicationLink;
+    @Mock
+    private ApplicationLinkRequestFactory applicationLinkRequestFactory;
+    @Mock
+    private ApplicationLinkRequest applicationLinkRequest;
 
     private JiraService jiraService;
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        when(applicationLinkService.getPrimaryApplicationLink(JiraApplicationType.class)).thenReturn(applicationLink);
+        when(applicationLink.createAuthenticatedRequestFactory()).thenReturn(applicationLinkRequestFactory);
+        when(applicationLinkRequestFactory.createRequest(Request.MethodType.POST, "/rest/api/2/search"))
+                .thenReturn(applicationLinkRequest);
 
         jiraService = new JiraServiceImpl(applicationLinkService);
     }
@@ -51,14 +59,12 @@ public class JiraServiceImplTest {
 
     @Test
     public void testDoesJiraApplicationLinkExist_returnsTrueIfLinkExists() throws Exception {
-        when(applicationLinkService.getPrimaryApplicationLink(JiraApplicationType.class)).thenReturn(mock(ApplicationLink.class));
-
         assertThat(jiraService.doesJiraApplicationLinkExist()).isTrue();
     }
 
     @Test
     public void testDoesIssueMatchJqlQuery_finalJqlQueryContainsBothIssueKeyAndUserQuery() throws Exception {
-        jiraService = setupJqlTest("{\"issues\": []}");
+        setupJqlTest("{\"issues\": []}");
 
         jiraService.doesIssueMatchJqlQuery("project = TEST", new IssueKey("TEST", "123"));
 
@@ -67,7 +73,7 @@ public class JiraServiceImplTest {
 
     @Test
     public void testDoesIssueMatchJqlQuery_httpRequestDetails() throws Exception {
-        jiraService = setupJqlTest("{\"issues\": []}");
+        setupJqlTest("{\"issues\": []}");
 
         jiraService.doesIssueMatchJqlQuery("project = TEST", new IssueKey("TEST", "123"));
 
@@ -78,7 +84,7 @@ public class JiraServiceImplTest {
 
     @Test
     public void testDoesIssueMatchJqlQuery_returnsFalseIfNoIssuesMatchJql() throws Exception {
-        jiraService = setupJqlTest("{\"issues\": []}");
+        setupJqlTest("{\"issues\": []}");
 
         assertThat(jiraService.doesIssueMatchJqlQuery("project = TEST", new IssueKey("TEST", "123")))
                 .isFalse();
@@ -86,7 +92,7 @@ public class JiraServiceImplTest {
 
     @Test
     public void testDoesIssueMatchJqlQuery_returnsTrueIfIssuesMatchJql() throws Exception {
-        jiraService = setupJqlTest("{\"issues\": [{}]}");
+        setupJqlTest("{\"issues\": [{}]}");
 
         assertThat(jiraService.doesIssueMatchJqlQuery("project = TEST", new IssueKey("TEST", "123")))
                 .isTrue();
@@ -99,8 +105,6 @@ public class JiraServiceImplTest {
 
     @Test
     public void testIsJqlQueryValid_returnsFalseIfNotValid() throws Exception {
-        jiraService = setupJqlTest(null);
-
         ResponseStatusException ex = mock(ResponseStatusException.class, RETURNS_DEEP_STUBS);
         when(ex.getResponse().getStatusCode()).thenReturn(400);
         when(applicationLinkRequest.execute()).thenThrow(ex);
@@ -110,8 +114,6 @@ public class JiraServiceImplTest {
 
     @Test
     public void testIsJqlQueryValid_unknownExceptionsAreRethrown() throws Exception {
-        jiraService = setupJqlTest(null);
-
         ResponseStatusException ex = mock(ResponseStatusException.class, RETURNS_DEEP_STUBS);
         when(ex.getResponse().getStatusCode()).thenReturn(500);
         when(applicationLinkRequest.execute()).thenThrow(ex);
@@ -124,15 +126,7 @@ public class JiraServiceImplTest {
         }
     }
 
-    private JiraService setupJqlTest(String jsonResponse) throws Exception {
-        when(applicationLinkService.getPrimaryApplicationLink(JiraApplicationType.class)
-                .createAuthenticatedRequestFactory().createRequest(Request.MethodType.POST, "/rest/api/2/search"))
-                .thenReturn(applicationLinkRequest);
-
-        jiraService = new JiraServiceImpl(applicationLinkService);
-
+    private void setupJqlTest(String jsonResponse) throws Exception {
         when(applicationLinkRequest.execute()).thenReturn(jsonResponse);
-
-        return jiraService;
     }
 }

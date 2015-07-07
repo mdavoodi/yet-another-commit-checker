@@ -59,7 +59,7 @@ public class YaccErrorBuilderTest {
 
     @Test
     public void testGetErrorMessage_commitErrorsAreShown() {
-        List<YaccError> errors = new ArrayList<YaccError>();
+        List<YaccError> errors = new ArrayList<>();
         errors.add(new YaccError("commit error"));
 
         String message = yaccErrorBuilder.getErrorMessage(errors);
@@ -71,7 +71,7 @@ public class YaccErrorBuilderTest {
 
     @Test
     public void testGetErrorMessage_multipleErrors() {
-        List<YaccError> errors = new ArrayList<YaccError>();
+        List<YaccError> errors = new ArrayList<>();
         errors.add(new YaccError("commit error"));
         errors.add(new YaccError("another error"));
 
@@ -88,7 +88,7 @@ public class YaccErrorBuilderTest {
     public void testGetErrorMessage_customFooterIsShownIfPresent() {
         when(settings.getString("errorMessageFooter")).thenReturn("custom footer");
 
-        List<YaccError> errors = new ArrayList<YaccError>();
+        List<YaccError> errors = new ArrayList<>();
         errors.add(new YaccError("commit error"));
 
         String message = yaccErrorBuilder.getErrorMessage(errors);
@@ -104,7 +104,7 @@ public class YaccErrorBuilderTest {
     public void testGetErrorMessage_customErrorsShownIfPresent() {
         when(settings.getString("errorMessage.COMMIT_REGEX")).thenReturn("more info");
 
-        List<YaccError> errors = new ArrayList<YaccError>();
+        List<YaccError> errors = new ArrayList<>();
         errors.add(new YaccError(YaccError.Type.COMMIT_REGEX, "commit error"));
 
         String message = yaccErrorBuilder.getErrorMessage(errors);

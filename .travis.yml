@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - openjdk6
+  - openjdk7
 before_install:
   - sudo apt-get update
   - sudo apt-get install apt-transport-https
