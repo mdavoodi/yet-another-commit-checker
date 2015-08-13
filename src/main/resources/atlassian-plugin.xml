@@ -6,6 +6,7 @@
         <param name="plugin-icon">images/pluginIcon.png</param>
         <param name="plugin-logo">images/pluginLogo.png</param>
         <param name="atlassian-data-center-compatible">true</param>
+        <param name="configure.url">/plugins/servlet/yaccHook/config</param>
     </plugin-info>
 
     <!-- add our i18n resource -->
@@ -47,4 +48,38 @@
 		</config-form>
 		<validator>com.isroot.stash.plugin.ConfigValidator</validator>
 	</repository-hook>
+
+    <!-- Global pre-receive hook module definitions -->
+    <servlet key="yaccHook-config-servlet" name="YaccHook Configuration Servlet"
+             class="com.isroot.stash.plugin.YaccConfigServlet">
+        <url-pattern>/yaccHook/*</url-pattern>
+    </servlet>
+
+    <stash-resource key="yaccHook-config-serverside">
+        <directory location="/static/">
+            <include>/**/simple.soy</include>
+            <include>/**/serverside-config.soy</include>
+        </directory>
+        <!--<context>plugin.page.stashbot</context>-->
+        <dependency>com.atlassian.stash.stash-web-plugin:server-soy-templates</dependency>
+        <dependency>com.atlassian.stash.stash-web-plugin:global</dependency>
+    </stash-resource>
+
+    <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+
+    <pre-receive-hook key="yaccPreReceiveHook" name="Yet Another Commit Checker"
+                      class="com.isroot.stash.plugin.YaccPreReceiveHook">
+        <description>Yet Another Commit Checker global pre-receive hook configuration. Is overridden by repository hook
+            configurations.
+        </description>
+        <config-form name="Yacc Hook Config" key="yaccHook-config">
+            <view>com.atlassian.stash.repository.hook.ref.formContents</view>
+            <directory location="/static/"/>
+        </config-form>
+        <validator>com.isroot.stash.plugin.ConfigValidator</validator>
+    </pre-receive-hook>
+
+    <!-- Makes PluginSettingsFactory available to the plugin to allow the global settings to be set. -->
+    <component-import key="pluginSettingsFactory" interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory" />
+
 </atlassian-plugin>
