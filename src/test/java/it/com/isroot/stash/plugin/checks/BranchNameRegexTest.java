@@ -4,6 +4,7 @@ import com.atlassian.pageobjects.TestedProductFactory;
 import com.atlassian.webdriver.bitbucket.BitbucketTestedProduct;
 import com.atlassian.webdriver.bitbucket.page.BitbucketLoginPage;
 import com.atlassian.webdriver.testing.rule.WebDriverScreenshotRule;
+import com.isroot.stash.test.LogTestStartRule;
 import it.com.isroot.stash.plugin.YaccBranchCreationPage;
 import it.com.isroot.stash.plugin.YaccGlobalSettingsPage;
 import it.com.isroot.stash.plugin.YaccRepoSettingsPage;
@@ -24,6 +25,8 @@ public class BranchNameRegexTest {
 
     @Rule
     public WebDriverScreenshotRule webDriverScreenshotRule = new WebDriverScreenshotRule();
+
+    @Rule public LogTestStartRule logTestStartRule = new LogTestStartRule();
 
     @BeforeClass
     public static void setup() {

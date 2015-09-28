@@ -13,3 +13,10 @@ before_install:
 install:
   - atlas-mvn -q install -DskipTests=true
 script: atlas-integration-test
+addons:
+  artifacts:
+    paths:
+    - target/webdriverTests
+    - target/bitbucket/home/log
+    - target/container/tomcat8x/cargo-bitbucket-home/logs
+  

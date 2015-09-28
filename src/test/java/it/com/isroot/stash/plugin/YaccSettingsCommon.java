@@ -5,6 +5,8 @@ import com.atlassian.pageobjects.elements.PageElement;
 import com.atlassian.pageobjects.elements.query.Poller;
 import com.atlassian.webdriver.bitbucket.page.BitbucketPage;
 import com.atlassian.webdriver.bitbucket.util.ElementUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2015-09-13
  */
 abstract class YaccSettingsCommon extends BitbucketPage {
+    private static final Logger log = LoggerFactory.getLogger(YaccSettingsCommon.class);
+
     @ElementBy(className = "prevent-double-submit")
     private PageElement form;
 
@@ -214,6 +218,8 @@ abstract class YaccSettingsCommon extends BitbucketPage {
     }
 
     public YaccSettingsCommon clearSettings() {
+        log.info("clearing settings");
+
         Poller.waitUntilTrue(excludeMergeCommits.timed().isVisible());
 
         if(excludeMergeCommits.isSelected()) {

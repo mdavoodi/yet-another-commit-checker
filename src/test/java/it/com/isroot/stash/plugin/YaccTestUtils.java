@@ -6,12 +6,15 @@ import com.atlassian.webdriver.bitbucket.BitbucketTestedProduct;
 import com.atlassian.webdriver.bitbucket.page.BitbucketLoginPage;
 import com.atlassian.webdriver.pageobjects.WebDriverTester;
 import org.hamcrest.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Sean Ford
  * @since 2015-09-21
  */
 public class YaccTestUtils {
+    private static final Logger log = LoggerFactory.getLogger(YaccTestUtils.class);
 
     /**
      * Reset YACC settings data so that tests can start at a clean slate.
@@ -19,6 +22,8 @@ public class YaccTestUtils {
      * API has a way to reset all the data?
      */
     public static void resetData(BitbucketTestedProduct stash) {
+        log.info("resetting test generated data");
+
         YaccRepoSettingsPage settingsPage = stash.visit(BitbucketLoginPage.class)
                 .loginAsSysAdmin(YaccRepoSettingsPage.class);
 
@@ -32,6 +37,8 @@ public class YaccTestUtils {
         globalSettingsPage.clickSubmit();
 
         stash.getTester().getDriver().manage().deleteAllCookies();
+
+        log.info("done resetting data");
     }
 
     public static void waitForStashToBoot(final WebDriverTester tester) {
@@ -39,7 +46,11 @@ public class YaccTestUtils {
             @Override
             public boolean test() throws Exception {
                 tester.gotoUrl(System.getProperty("http.bitbucket.url") + "/status");
-                return tester.getDriver().getPageSource().contains("RUNNING");
+                boolean isRunning = tester.getDriver().getPageSource().contains("RUNNING");
+
+                log.info("bitbucket is running: {}\n{}", isRunning, tester.getDriver().getPageSource());
+
+                return isRunning;
             }
 
             @Override

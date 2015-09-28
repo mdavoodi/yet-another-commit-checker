@@ -4,6 +4,7 @@ import com.atlassian.pageobjects.TestedProductFactory;
 import com.atlassian.webdriver.bitbucket.BitbucketTestedProduct;
 import com.atlassian.webdriver.bitbucket.page.BitbucketLoginPage;
 import com.atlassian.webdriver.testing.rule.WebDriverScreenshotRule;
+import com.isroot.stash.test.LogTestStartRule;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -22,6 +23,8 @@ public class SettingsTest {
 
     @Rule
     public WebDriverScreenshotRule webDriverScreenshotRule = new WebDriverScreenshotRule();
+
+    @Rule public LogTestStartRule logTestStartRule = new LogTestStartRule();
 
 
     @BeforeClass
