@@ -70,4 +70,14 @@ public class YaccCommit {
     public boolean isMerge() {
         return isMerge;
     }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof YaccCommit && ((YaccCommit) other).id.equals(id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
