@@ -63,15 +63,26 @@ public class CommitsServiceImpl implements CommitsService {
                 yaccCommits.add(commit);
             }
         } else {
-            GitRevListBuilder revListBuilder = getGitScmCommandBuilder(repository).revList()
+            GitRevListBuilder currentRevListBuilder = getGitScmCommandBuilder(repository).revList()
                     .format(RevListOutputHandler.FORMAT)
-                    .revs(refChange.getToHash(), "--not", "--all");
+                    .rev(refChange.getToHash());
 
-            List<YaccCommit> found = revListBuilder.build(new RevListOutputHandler())
+            List<YaccCommit> currentFound = currentRevListBuilder.build(new RevListOutputHandler())
                     .call();
 
-            if (found != null) {
-                yaccCommits.addAll(found);
+            GitRevListBuilder allRevListBuilder = getGitScmCommandBuilder(repository).revList()
+                    .format(RevListOutputHandler.FORMAT)
+                    .all(true);
+
+            List<YaccCommit> allFound = allRevListBuilder.build(new RevListOutputHandler())
+                    .call();
+
+            if (currentFound != null) {
+                yaccCommits.addAll(currentFound);
+            }
+
+            if (allFound != null) {
+                yaccCommits.removeAll(allFound);
             }
         }
 
