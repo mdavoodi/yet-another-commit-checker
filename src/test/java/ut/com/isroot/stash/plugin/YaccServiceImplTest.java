@@ -72,6 +72,22 @@ public class YaccServiceImplTest {
         assertThat(errors).containsOnly(new YaccError(YaccError.Type.COMMITTER_NAME,
                 "deadbeef: expected committer name 'John Smith' but found 'Incorrect Name'"));
     }
+    
+    @Test
+    public void testCheckRefChange_requireMatchingAuthorName_allowOnMismatchAndExcludedUser() throws Exception {
+        when(settings.getBoolean("requireMatchingAuthorName", false)).thenReturn(true);
+        when(settings.getString("excludeUsers")).thenReturn("userName");    
+        when(stashUser.getType()).thenReturn(UserType.NORMAL);
+        when(stashUser.getDisplayName()).thenReturn("John Smith");
+        when(stashUser.getName()).thenReturn("userName");
+
+        YaccCommit commit = mockCommit();
+        when(commit.getCommitter().getName()).thenReturn("Incorrect Name");
+        when(commitsService.getNewCommits(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(commit));
+
+        List<YaccError> errors = yaccService.checkRefChange(null, settings, mockRefChange());
+        assertThat(errors).isEmpty();
+    }
 
     @Test
     public void testCheckRefChange_requireMatchingAuthorName_allowOnMatch() throws Exception {
@@ -129,6 +145,22 @@ public class YaccServiceImplTest {
         List<YaccError> errors = yaccService.checkRefChange(null, settings, mockRefChange());
         assertThat(errors).containsOnly(new YaccError(YaccError.Type.COMMITTER_EMAIL,
                 "deadbeef: expected committer email 'correct@email.com' but found 'wrong@email.com'"));
+    }
+    
+    @Test
+    public void testCheckRefChange_requireMatchingAuthorEmail_allowOnMismatchAndExcludedUser() throws Exception {
+        when(settings.getBoolean("requireMatchingAuthorEmail", false)).thenReturn(true);
+        when(settings.getString("excludeUsers")).thenReturn("userName");        
+        when(stashUser.getType()).thenReturn(UserType.NORMAL);
+        when(stashUser.getEmailAddress()).thenReturn("correct@email.com");
+        when(stashUser.getName()).thenReturn("userName");
+
+        YaccCommit commit = mockCommit();
+        when(commit.getCommitter().getEmailAddress()).thenReturn("wrong@email.com");
+        when(commitsService.getNewCommits(any(Repository.class), any(RefChange.class))).thenReturn(Sets.newHashSet(commit));
+
+        List<YaccError> errors = yaccService.checkRefChange(null, settings, mockRefChange());
+        assertThat(errors).isEmpty();
     }
 
     @Test

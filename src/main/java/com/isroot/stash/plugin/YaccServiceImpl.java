@@ -76,24 +76,29 @@ public class YaccServiceImpl implements YaccService {
         ApplicationUser stashUser = stashAuthenticationContext.getCurrentUser();
 
         if (stashUser == null) {
-            // This should never happen
+            // This should never happen, so skip the checks.
             log.warn("Unauthenticated user is committing - skipping committer validate checks");
-        } else {
-            // Only validate 'normal' users - service users like
+            return errors;
+        }
+
+        //Skip all checks if the commit or branch are excluded.
+        if(!isCommitExcluded(settings, commit) && !isBranchExcluded(settings, branchName)) {
+        
+            // Only validate email/name for 'normal' users - service users like
             // the ssh access keys use the key comment as the 'name' and don't have emails
             // Neither of these are useful to validate, so just skip them
             if (stashUser.getType() == UserType.NORMAL) {
                 errors.addAll(checkCommitterEmail(settings, commit, stashUser));
                 errors.addAll(checkCommitterName(settings, commit, stashUser));
             }
-        }
-
-        if(checkMessages && !isCommitExcluded(settings, commit) && !isBranchExcluded(settings, branchName)) {
-            errors.addAll(checkCommitMessageRegex(settings, commit));
-
-            // Checking JIRA issues might be dependent on the commit message regex, so only proceed if there are no errors.
-            if (errors.isEmpty()) {
-                errors.addAll(checkJiraIssues(settings, commit));
+        
+            if(checkMessages) {
+                errors.addAll(checkCommitMessageRegex(settings, commit));
+                
+                // Checking JIRA issues might be dependent on the commit message regex, so only proceed if there are no errors.
+                if (errors.isEmpty()) {
+                    errors.addAll(checkJiraIssues(settings, commit));
+                }
             }
         }
 
