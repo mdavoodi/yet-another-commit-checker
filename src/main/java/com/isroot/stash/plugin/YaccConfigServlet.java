@@ -6,6 +6,7 @@ import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.setting.SettingsValidationErrors;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
+import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.google.common.collect.ImmutableMap;
@@ -40,15 +41,18 @@ public class YaccConfigServlet extends HttpServlet {
     private Map<String, Iterable<String>> fieldErrors;
     private final PluginSettings pluginSettings;
     private Map<String, Object> settingsMap;
+    private final UserManager userManager;
 
     public YaccConfigServlet(SoyTemplateRenderer soyTemplateRenderer,
                              PluginSettingsFactory pluginSettingsFactory,
                              JiraService jiraService,
                              RepositoryHookService repositoryHookService,
-                             NavBuilder navBuilder) {
+                             NavBuilder navBuilder,
+                             final UserManager userManager) {
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.navBuilder = navBuilder;
         this.repositoryHookService = repositoryHookService;
+        this.userManager = userManager;
 
         pluginSettings = pluginSettingsFactory.createGlobalSettings();
 
@@ -62,6 +66,18 @@ public class YaccConfigServlet extends HttpServlet {
     @SuppressWarnings("unchecked")
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         log.debug("doGet");
+
+        if(this.userManager.getRemoteUser() == null) {
+            resp.sendError(401);
+            return;
+        }
+
+        if(!(this.userManager.isAdmin(this.userManager.getRemoteUserKey())
+                || this.userManager.isSystemAdmin(this.userManager.getRemoteUserKey()))) {
+            resp.sendError(403);
+            return;
+        }
+
         settingsMap = (Map<String, Object>) pluginSettings.get(SETTINGS_MAP);
         if (settingsMap == null) {
             settingsMap = new HashMap<>();

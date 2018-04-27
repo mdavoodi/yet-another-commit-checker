@@ -5,6 +5,7 @@ import com.atlassian.bitbucket.nav.NavBuilder;
 import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
+import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.sal.testresources.pluginsettings.MockPluginSettings;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
@@ -39,6 +40,7 @@ public class YaccConfigServletTest {
     @Mock private NavBuilder navBuilder;
     @Mock private NavBuilder.Addons addons;
     @Mock private Settings settings;
+    @Mock private UserManager userManager;
 
     @Mock private HttpServletRequest request;
     @Mock private HttpServletResponse response;
@@ -60,7 +62,7 @@ public class YaccConfigServletTest {
         when(addons.buildRelative()).thenReturn("/yaccHook/config");
 
         yaccConfigServlet = new YaccConfigServlet(soyTemplateRenderer,
-                pluginSettingsFactory, jiraService, repositoryHookService, navBuilder);
+                pluginSettingsFactory, jiraService, repositoryHookService, navBuilder, userManager);
     }
 
     @Test
