@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import ut.com.isroot.stash.plugin.mock.MockSettingsBuilder;
+import ut.com.isroot.stash.plugin.mock.MockUserManger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +55,7 @@ public class YaccConfigServletTest {
         MockitoAnnotations.initMocks(this);
 
         pluginSettings = new MockPluginSettings();
+        userManager = new MockUserManger();
         when(pluginSettingsFactory.createGlobalSettings()).thenReturn(pluginSettings);
 
         when(repositoryHookService.createSettingsBuilder()).thenReturn(new MockSettingsBuilder());
@@ -107,5 +109,4 @@ public class YaccConfigServletTest {
                 .containsEntry("requireMatchingAuthorEmail", "true")
                 .containsEntry("branchNameRegex", "master");
     }
-
 }
