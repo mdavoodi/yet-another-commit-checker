@@ -67,14 +67,8 @@ public class YaccConfigServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         log.debug("doGet");
 
-        if(this.userManager.getRemoteUser() == null) {
+        if (!validateAdminUser(resp)) {
             resp.sendError(401);
-            return;
-        }
-
-        if(!(this.userManager.isAdmin(this.userManager.getRemoteUserKey())
-                || this.userManager.isSystemAdmin(this.userManager.getRemoteUserKey()))) {
-            resp.sendError(403);
             return;
         }
 
@@ -92,6 +86,19 @@ public class YaccConfigServlet extends HttpServlet {
                 .addAll(settingsMap)
                 .build();
         configValidator.validate(settings, new SettingsValidationErrorsImpl(fieldErrors), null);
+    }
+
+    private boolean validateAdminUser(HttpServletResponse resp) throws IOException {
+        if(this.userManager.getRemoteUser() == null) {
+            return false;
+        }
+
+        if(!(this.userManager.isAdmin(this.userManager.getRemoteUserKey())
+                || this.userManager.isSystemAdmin(this.userManager.getRemoteUserKey()))) {
+            return false;
+        }
+
+        return true;
     }
 
     private void doGetContinue(HttpServletResponse resp) throws IOException, ServletException {
@@ -137,6 +144,11 @@ public class YaccConfigServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+        if (!validateAdminUser(resp)) {
+            resp.sendError(401);
+            return;
+        }
+
         // Shouldn't normally happen because this is initialized in doGet, but might occur during
         // testing when settings are saved with a POST directly.
         if (settingsMap == null) {
