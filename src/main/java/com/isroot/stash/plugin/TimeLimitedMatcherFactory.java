@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 /**
  * A factory class used to generate Matcher instances that will throw if in use after their
  * timeout.
+ * Source blog post: https://www.exratione.com/2017/06/preventing-unbounded-regular-expression-operations-in-java/
  */
 public abstract class TimeLimitedMatcherFactory {
 
