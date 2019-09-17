@@ -2,7 +2,7 @@ language: java
 jdk:
   - openjdk8
 before_install:
-  - curl https://packages.atlassian.com/list/atlassian-sdk-deb/deb-archive/atlassian-plugin-sdk_6.3.7_all.deb -O
+  - curl https://packages.atlassian.com/list/atlassian-sdk-deb/deb-archive/atlassian-plugin-sdk_6.3.7_all.deb -L -O
   - sudo dpkg -i ./atlassian-plugin-sdk_6.3.7_all.deb
 install:
   - atlas-mvn -q install -DskipTests=true
