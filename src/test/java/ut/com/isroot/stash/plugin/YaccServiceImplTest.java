@@ -74,7 +74,7 @@ public class YaccServiceImplTest {
 
     @Test
     public void testCheckCommit_rejectCatastrophicBacktrack() {
-        settings.setCommitMessageRegex("^(a+)+$");
+        settings.setCommitMessageRegex("(((a+)+)+)+");
 
         YaccCommit commit = mockCommit();
         when(commit.getMessage())
