@@ -202,7 +202,7 @@ public class YaccServiceImpl implements YaccService {
 
         if (excludeRegex != null && !excludeRegex.isEmpty()) {
             Pattern pattern = Pattern.compile(excludeRegex);
-            Matcher matcher = pattern.matcher(commit.getMessage());
+            Matcher matcher = TimeLimitedMatcherFactory.matcher(pattern, commit.getMessage());
             if (matcher.find()) {
                 log.debug("commit excluded because excludeByRegex={} matches", excludeRegex);
                 return true;
@@ -221,7 +221,7 @@ public class YaccServiceImpl implements YaccService {
 
         if (excludeBranchRegex != null && !excludeBranchRegex.isEmpty()) {
             Pattern pattern = Pattern.compile(excludeBranchRegex);
-            Matcher matcher = pattern.matcher(branchName);
+            Matcher matcher = TimeLimitedMatcherFactory.matcher(pattern, branchName);
             if (matcher.matches()) {
                 log.debug("branch is excluded");
                 return true;
@@ -237,7 +237,7 @@ public class YaccServiceImpl implements YaccService {
         String regex = settings.getString("commitMessageRegex");
         if (!isNullOrEmpty(regex)) {
             Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
-            Matcher matcher = pattern.matcher(commit.getMessage());
+            Matcher matcher = TimeLimitedMatcherFactory.matcher(pattern, commit.getMessage());
             if (!matcher.matches()) {
                 errors.add(new YaccError(YaccError.Type.COMMIT_REGEX,
                         "commit message doesn't match regex: " + regex));
@@ -252,7 +252,7 @@ public class YaccServiceImpl implements YaccService {
         String regex = settings.getString("committerEmailRegex");
         if (!isNullOrEmpty(regex)) {
             Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
-            Matcher matcher = pattern.matcher(commit.getCommitter().getEmailAddress().toLowerCase());
+            Matcher matcher = TimeLimitedMatcherFactory.matcher(pattern, commit.getCommitter().getEmailAddress().toLowerCase());
             if (!matcher.matches()) {
                 errors.add(new YaccError(YaccError.Type.COMMITTER_EMAIL_REGEX,
                         String.format("committer email regex '%s' does not match user email '%s'", regex,
@@ -271,7 +271,7 @@ public class YaccServiceImpl implements YaccService {
         String regex = settings.getString("commitMessageRegex");
         if (!isNullOrEmpty(regex)) {
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(message);
+            Matcher matcher =  TimeLimitedMatcherFactory.matcher(pattern, message);
             if (matcher.matches() && matcher.groupCount() > 0) {
                 message = matcher.group(1);
             }

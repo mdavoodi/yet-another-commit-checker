@@ -4,6 +4,7 @@ import com.atlassian.bitbucket.hook.repository.CommitAddedDetails;
 import com.atlassian.bitbucket.hook.repository.PreRepositoryHookCommitCallback;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookResult;
 import com.atlassian.bitbucket.setting.Settings;
+import com.google.common.collect.Lists;
 import com.isroot.stash.plugin.errors.YaccError;
 import com.isroot.stash.plugin.errors.YaccErrorBuilder;
 import org.slf4j.Logger;
@@ -47,7 +48,15 @@ class YaccHookCommitCallback implements PreRepositoryHookCommitCallback {
 
         String branchName = commitDetails.getRef().getDisplayId();
 
-        List<YaccError> commitErrors = yaccService.checkCommit(settings, yaccCommit, branchName);
+        List<YaccError> commitErrors;
+        try {
+            commitErrors = yaccService.checkCommit(settings, yaccCommit, branchName);
+        } catch (TimeLimitedMatcherFactory.RegExpTimeoutException e) {
+            log.error("Regex timeout for {} / {}", commitDetails.getCommit().getRepository().getProject().getName(), commitDetails.getCommit().getRepository().getName());
+            log.error("Regex timeout exceeded", e);
+            commitErrors = Lists.newArrayList();
+            commitErrors.add(new YaccError(YaccError.Type.OTHER, "The timeout for evaluating regular expression has been exceeded"));
+        }
 
         for (YaccError e : commitErrors) {
             String refAndCommitId = String.format("%s: %s",
