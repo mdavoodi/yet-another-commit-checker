@@ -102,8 +102,7 @@ public class ConfigValidatorTest {
 
         verify(settings).getString("excludeByRegex");
         verify(settingsValidationErrors).addFieldError("excludeByRegex", "Invalid Regex: Unclosed group near index 2\n" +
-                "^(\n" +
-                "  ^");
+                "^(");
     }
 
     @Test
@@ -133,8 +132,7 @@ public class ConfigValidatorTest {
 
         verify(settings).getString("excludeBranchRegex");
         verify(settingsValidationErrors).addFieldError("excludeBranchRegex", "Invalid Regex: Unclosed group near index 2\n" +
-                "^(\n" +
-                "  ^");
+                "^(");
     }
 
     @Test
