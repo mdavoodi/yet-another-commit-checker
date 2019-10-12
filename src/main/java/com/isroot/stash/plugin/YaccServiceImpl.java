@@ -3,8 +3,8 @@ package com.isroot.stash.plugin;
 import com.atlassian.bitbucket.auth.AuthenticationContext;
 import com.atlassian.bitbucket.hook.repository.PreRepositoryHookContext;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookCommitFilter;
+import com.atlassian.bitbucket.hook.repository.RepositoryHookRequest;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookResult;
-import com.atlassian.bitbucket.hook.repository.RepositoryPushHookRequest;
 import com.atlassian.bitbucket.repository.RefChange;
 import com.atlassian.bitbucket.repository.RefChangeType;
 import com.atlassian.bitbucket.repository.Repository;
@@ -55,7 +55,8 @@ public class YaccServiceImpl implements YaccService {
 
     @Override
     public RepositoryHookResult check(PreRepositoryHookContext context,
-            RepositoryPushHookRequest repositoryPushHookRequest, Settings settings) {
+                                      RepositoryHookRequest repositoryPushHookRequest,
+                                      Settings settings) {
         log.debug("YaccHook preUpdate, registering commit callback. settings={}", settings);
 
         Repository repository = repositoryPushHookRequest.getRepository();

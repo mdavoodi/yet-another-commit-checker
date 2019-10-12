@@ -6,7 +6,6 @@ import com.atlassian.bitbucket.hook.repository.PreRepositoryHookContext;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookRequest;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookResult;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookTrigger;
-import com.atlassian.bitbucket.hook.repository.RepositoryPushHookRequest;
 import com.atlassian.bitbucket.hook.repository.StandardRepositoryHookTrigger;
 import com.atlassian.bitbucket.repository.Branch;
 import com.atlassian.bitbucket.setting.Settings;
@@ -43,8 +42,9 @@ public class YaccHook implements PreRepositoryHook {
 
         final RepositoryHookTrigger trigger = repositoryHookRequest.getTrigger();
 
-        if (trigger == StandardRepositoryHookTrigger.REPO_PUSH) {
-            return handleRepositoryPush(context, (RepositoryPushHookRequest) repositoryHookRequest);
+        if (trigger == StandardRepositoryHookTrigger.REPO_PUSH
+                || trigger == StandardRepositoryHookTrigger.FILE_EDIT) {
+            return handleRepositoryPush(context, repositoryHookRequest);
         } else if (trigger == StandardRepositoryHookTrigger.BRANCH_CREATE
                 && repositoryHookRequest instanceof BranchCreationHookRequest) {
 
@@ -63,7 +63,7 @@ public class YaccHook implements PreRepositoryHook {
 
     private RepositoryHookResult handleRepositoryPush(
             @Nonnull PreRepositoryHookContext context,
-            @Nonnull RepositoryPushHookRequest repositoryPushHookRequest) {
+            @Nonnull RepositoryHookRequest repositoryPushHookRequest) {
         final Settings settings = context.getSettings();
 
         RepositoryHookResult result;
