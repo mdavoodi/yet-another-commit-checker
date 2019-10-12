@@ -24,13 +24,16 @@ class YaccHookCommitCallback implements PreRepositoryHookCommitCallback {
     private final Settings settings;
     private final YaccService yaccService;
     private final List<YaccError> errors;
+    private final boolean showDefaultMessageHeader;
 
     private RepositoryHookResult result = RepositoryHookResult.accepted();
 
-    public YaccHookCommitCallback(YaccService yaccService, Settings settings) {
+    public YaccHookCommitCallback(YaccService yaccService, Settings settings,
+                                  boolean showDefaultMessageHeader) {
         this.settings = settings;
         this.yaccService = yaccService;
         this.errors = new ArrayList<>();
+        this.showDefaultMessageHeader = showDefaultMessageHeader;
     }
 
     @Override
@@ -73,7 +76,8 @@ class YaccHookCommitCallback implements PreRepositoryHookCommitCallback {
         log.debug("callback onEnd");
 
         if (!errors.isEmpty()) {
-            YaccErrorBuilder errorBuilder = new YaccErrorBuilder(settings);
+            YaccErrorBuilder errorBuilder = new YaccErrorBuilder(settings,
+                    showDefaultMessageHeader);
             String message = errorBuilder.getErrorMessage(errors);
 
             result = RepositoryHookResult.rejected("Push rejected by YACC", message);

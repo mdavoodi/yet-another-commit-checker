@@ -27,9 +27,15 @@ public class YaccErrorBuilder {
             "Push rejected.";
 
     private final Settings settings;
+    private final boolean showDefaultMessageHeader;
 
     public YaccErrorBuilder(Settings settings) {
+        this(settings, true);
+    }
+
+    public YaccErrorBuilder(Settings settings, boolean showDefaultMessageHeader) {
         this.settings = settings;
+        this.showDefaultMessageHeader = showDefaultMessageHeader;
     }
 
     public String getErrorMessage(List<YaccError> errors) {
@@ -73,7 +79,7 @@ public class YaccErrorBuilder {
         String customHeader = settings.getString("errorMessageHeader");
         if(customHeader != null && !customHeader.isEmpty()) {
             header += customHeader;
-        } else {
+        } else if(showDefaultMessageHeader) {
             // sford: long live the error bears
             header += ERROR_BEARS;
         }

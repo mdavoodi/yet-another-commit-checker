@@ -5,6 +5,7 @@ import com.atlassian.bitbucket.hook.repository.PreRepositoryHookContext;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookCommitFilter;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookRequest;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookResult;
+import com.atlassian.bitbucket.hook.repository.StandardRepositoryHookTrigger;
 import com.atlassian.bitbucket.repository.RefChange;
 import com.atlassian.bitbucket.repository.RefChangeType;
 import com.atlassian.bitbucket.repository.Repository;
@@ -55,14 +56,14 @@ public class YaccServiceImpl implements YaccService {
 
     @Override
     public RepositoryHookResult check(PreRepositoryHookContext context,
-                                      RepositoryHookRequest repositoryPushHookRequest,
+                                      RepositoryHookRequest repositoryHookRequest,
                                       Settings settings) {
         log.debug("YaccHook preUpdate, registering commit callback. settings={}", settings);
 
-        Repository repository = repositoryPushHookRequest.getRepository();
+        Repository repository = repositoryHookRequest.getRepository();
 
         List<YaccError> errors = checkRefs(repository, settings,
-                repositoryPushHookRequest.getRefChanges());
+                repositoryHookRequest.getRefChanges());
         if (!errors.isEmpty()) {
             YaccErrorBuilder errorBuilder = new YaccErrorBuilder(settings);
             String message = errorBuilder.getErrorMessage(errors);
@@ -72,12 +73,17 @@ public class YaccServiceImpl implements YaccService {
             return RepositoryHookResult.rejected("Push rejected by YACC", message);
         }
 
-        context.registerCommitCallback(
-                new YaccHookCommitCallback(this, settings),
-                RepositoryHookCommitFilter.ADDED_TO_REPOSITORY);
+        YaccHookCommitCallback callback = new YaccHookCommitCallback(this, settings,
+                showDefaultRejectMessageHeader(repositoryHookRequest));
+
+        context.registerCommitCallback(callback, RepositoryHookCommitFilter.ADDED_TO_REPOSITORY);
 
         // Will be accepted unless commit callback rejects a commit
         return RepositoryHookResult.accepted();
+    }
+
+    private boolean showDefaultRejectMessageHeader(RepositoryHookRequest repositoryHookRequest) {
+        return repositoryHookRequest.getTrigger() != StandardRepositoryHookTrigger.FILE_EDIT;
     }
 
     private List<YaccError> checkRefs(Repository repository, Settings settings,
