@@ -1,6 +1,7 @@
 package ut.com.isroot.stash.plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -30,6 +31,7 @@ import com.atlassian.bitbucket.user.UserType;
 import com.google.common.collect.Lists;
 import com.isroot.stash.plugin.IssueKey;
 import com.isroot.stash.plugin.JiraService;
+import com.isroot.stash.plugin.TimeLimitedMatcherFactory;
 import com.isroot.stash.plugin.YaccCommit;
 import com.isroot.stash.plugin.YaccService;
 import com.isroot.stash.plugin.YaccServiceImpl;
@@ -69,6 +71,24 @@ public class YaccServiceImplTest {
 
         when(stashAuthenticationContext.getCurrentUser()).thenReturn(stashUser);
     }
+
+    @Test
+    public void testCheckCommit_rejectCatastrophicBacktrack() {
+        settings.setCommitMessageRegex("(((a+)+)+)+");
+
+        YaccCommit commit = mockCommit();
+        when(commit.getMessage())
+                .thenReturn("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaX");
+
+        // commit should be rejected because regex is causing catastrophic backtrack and timeout is expired
+        try {
+            yaccService.checkCommit(settings, commit, null);
+            failBecauseExceptionWasNotThrown(TimeLimitedMatcherFactory.RegExpTimeoutException.class);
+        } catch (Exception ex) {
+            assertThat(ex).isInstanceOf(TimeLimitedMatcherFactory.RegExpTimeoutException.class);
+        }
+    }
+
 
     @Test
     public void testCheckCommit_requireMatchingAuthorName_rejectOnMismatch() throws Exception {

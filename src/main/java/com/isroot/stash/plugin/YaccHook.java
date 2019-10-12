@@ -66,7 +66,16 @@ public class YaccHook implements PreRepositoryHook {
             @Nonnull RepositoryPushHookRequest repositoryPushHookRequest) {
         final Settings settings = context.getSettings();
 
-        return yaccService.check(context, repositoryPushHookRequest, settings);
+        RepositoryHookResult result;
+        try {
+            result = yaccService.check(context, repositoryPushHookRequest, settings);
+        } catch (TimeLimitedMatcherFactory.RegExpTimeoutException e) {
+            log.error("Regex timeout for {} / {}", repositoryPushHookRequest.getRepository().getProject().getName(), repositoryPushHookRequest.getRepository().getName());
+            log.error("Regex timeout exceeded", e);
+            result = RepositoryHookResult.rejected("Regex timeout exceeded", "The timeout for evaluating regular expression has been exceeded");
+        }
+
+        return result;
     }
 
     static RepositoryHookResult handleBranchCreation(@Nonnull Settings settings,
