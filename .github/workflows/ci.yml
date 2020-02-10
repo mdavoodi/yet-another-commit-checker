@@ -1,0 +1,43 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Install dependencies
+        run: |
+          curl https://packages.atlassian.com/list/atlassian-sdk-deb/deb-archive/atlassian-plugin-sdk_6.3.7_all.deb -L -O
+          sudo dpkg -i ./atlassian-plugin-sdk_6.3.7_all.deb
+
+      - name: Build plugin
+        run: atlas-mvn install -DskipTests=true
+
+      - name: Run tests
+        run: atlas-unit-test
+
+      # sford: upload-artifact@v1 doesn't support wild cards, so need to jump
+      # through some hoops to get jar path that contains YACC version in it
+      # See https://github.com/actions/upload-artifact/issues/11
+      - name: Get path to plugin jar
+        id: jarpath
+        run: echo "::set-output name=file::$(ls target/*jar)"
+
+      - name: Get name of plugin jar
+        id: jarname
+        run: echo "::set-output name=name::$(cd target/ && ls *.jar)"
+
+      - name: Archiving plugin jar
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.jarname.outputs.name }}
+          path: ${{ steps.jarpath.outputs.file }}
