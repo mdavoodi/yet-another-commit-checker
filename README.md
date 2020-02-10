@@ -1,4 +1,4 @@
-# Yet Another Commit Checker [![Build Status](https://travis-ci.org/sford/yet-another-commit-checker.svg?branch=master)](https://travis-ci.org/sford/yet-another-commit-checker)
+# Yet Another Commit Checker ![CI](https://github.com/sford/yet-another-commit-checker/workflows/CI/badge.svg)
 
 - [About](#about)
 - [Quick Start](#quick-start)
