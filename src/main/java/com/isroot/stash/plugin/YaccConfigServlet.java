@@ -4,6 +4,7 @@ import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
 import com.atlassian.bitbucket.nav.NavBuilder;
 import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.setting.SettingsValidationErrors;
+import com.atlassian.bitbucket.user.UserService;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.soy.renderer.SoyException;
@@ -45,14 +46,15 @@ public class YaccConfigServlet extends HttpServlet {
                              PluginSettingsFactory pluginSettingsFactory,
                              JiraService jiraService,
                              RepositoryHookService repositoryHookService,
-                             NavBuilder navBuilder) {
+                             NavBuilder navBuilder,
+                             UserService userService) {
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.navBuilder = navBuilder;
         this.repositoryHookService = repositoryHookService;
 
         pluginSettings = pluginSettingsFactory.createGlobalSettings();
 
-        configValidator = new ConfigValidator(jiraService);
+        configValidator = new ConfigValidator(jiraService, userService);
 
         fields = new HashMap<>();
         fieldErrors = new HashMap<>();

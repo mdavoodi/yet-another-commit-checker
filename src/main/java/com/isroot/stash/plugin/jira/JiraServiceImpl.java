@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.isroot.stash.plugin.ImpersonationService;
 import com.isroot.stash.plugin.IssueKey;
 import com.isroot.stash.plugin.JiraService;
 import com.isroot.stash.plugin.errors.YaccError;
@@ -40,9 +41,11 @@ public class JiraServiceImpl implements JiraService {
     private static final String JQL_NO_MATCH = "%s: JIRA Issue does not match JQL Query: %s";
 
     private final ApplicationLinkService applicationLinkService;
+    private final ImpersonationService impersonationService;
 
-    public JiraServiceImpl(ApplicationLinkService applicationLinkService) {
+    public JiraServiceImpl(ApplicationLinkService applicationLinkService, ImpersonationService impersonationService) {
         this.applicationLinkService = applicationLinkService;
+        this.impersonationService = impersonationService;
     }
 
     private Iterable<ReadOnlyApplicationLink> getJiraApplicationLinks() {
@@ -168,37 +171,43 @@ public class JiraServiceImpl implements JiraService {
                 log.debug("executing JQL query on JIRA application link '{}': {}", link.getName(),
                         jqlQuery);
 
-                ApplicationLinkRequest req = link.createAuthenticatedRequestFactory()
-                        .createRequest(Request.MethodType.POST, "/rest/api/2/search");
+                ApplicationLinkRequest req = impersonationService.runImpersonating(() ->
+                    {
+                        try {
+                            return link.createAuthenticatedRequestFactory()
+                                .createRequest(Request.MethodType.POST, "/rest/api/2/search");
+                        } catch (CredentialsRequiredException e) {
+                            log.error("credentials", e);
+                            ex.addError(link, e);
+                            return null;
+                        }
+                    }
+                );
 
-                req.setHeader("Content-Type", "application/json");
+                if (req != null) {
+                    req.setHeader("Content-Type", "application/json");
+                    Map<String, Object> request = new HashMap<>();
+                    request.put("jql", jqlQuery);
 
-                Map<String, Object> request = new HashMap<>();
-                request.put("jql", jqlQuery);
+                    List<String> requestedFields = new ArrayList<>();
+                    requestedFields.add("summary");
+                    request.put("fields", requestedFields);
 
-                List<String> requestedFields = new ArrayList<>();
-                requestedFields.add("summary");
-                request.put("fields", requestedFields);
+                    req.setEntity(new Gson().toJson(request));
 
-                req.setEntity(new Gson().toJson(request));
+                    String jsonResponse = req.execute();
 
-                String jsonResponse = req.execute();
+                    log.debug("json response: {}", jsonResponse);
 
-                log.debug("json response: {}", jsonResponse);
+                    JsonObject response = new JsonParser().parse(jsonResponse).getAsJsonObject();
+                    JsonArray issues = response.get("issues").getAsJsonArray();
 
-                JsonObject response = new JsonParser().parse(jsonResponse).getAsJsonObject();
-                JsonArray issues = response.get("issues").getAsJsonArray();
-
-                if (successOn == SUCCESS_ON.NON_ZERO_RESULT && issues.size() > 0) {
-                    return true;
+                    if (successOn == SUCCESS_ON.NON_ZERO_RESULT && issues.size() > 0) {
+                        return true;
+                    } else if (successOn == SUCCESS_ON.STATUS_200) {
+                        return true;
+                    }
                 }
-                else if (successOn == SUCCESS_ON.STATUS_200) {
-                    return true;
-                }
-            } catch (CredentialsRequiredException e) {
-                log.error("credentials", e);
-
-                ex.addError(link, e);
             } catch (ResponseException e) {
                 if (e instanceof ResponseStatusException) {
                     ResponseStatusException statusException = (ResponseStatusException) e;

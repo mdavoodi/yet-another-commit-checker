@@ -11,33 +11,51 @@
         <title>Yet Another Commit Checker</title>
     </head>
     <body>
-	{call aui.group.group}
-	{param content}
-        {call widget.aui.form.form}
-	        {param action: '' /}
-	        {param content}
-		        <h2>Yet Another Commit Checker default configuration. Repository hook configuration wins.</h2>
-		        {call .formContents}
-	        		{param config: $config /}
-	        		{param errors: $errors /}
-			{/call}
-                                {call widget.aui.form.buttons}
-                                    {param content}
-                                        {call widget.aui.form.submit}
-                                            {param id: 'submit' /}
-                                            {param isPrimary: true /}
-                                            {param accessKey: 's' /}
-                                            {param label: 'Save' /}
-                                        {/call}
-                                        {call widget.aui.form.cancelButton}
-                                            {param href: nav_admin() /}
-                                        {/call}
-                                    {/param}
+        {call aui.group.group}
+            {param content}
+                {call widget.aui.form.form}
+                    {param action: '' /}
+                    {param content}
+                    <h2>Yet Another Commit Checker JIRA configuration.</h2>
+                        {call aui.form.checkboxField}
+                            {param legendContent: 'Enable override JIRA user' /}
+                            {param fields: [[
+                            'id' : 'overrideJiraUserEnabled',
+                            'labelText': 'Enabled',
+                            'isChecked' : $config['overrideJiraUserEnabled']
+                            ]] /}
+                            {param descriptionText: 'Impersonate a specific user when getting requests from JIRA.' /}
+                        {/call}
+
+                        {call aui.form.textField}
+                            {param id: 'overrideJiraUser' /}
+                            {param labelContent: 'Overriden user name' /}
+                            {param value:$config ? $config['overrideJiraUser'] : null /}
+                            {param descriptionText: 'Impersonating user name.' /}
+                            {param errorTexts: $errors ? $errors['overrideJiraUser'] : null /}
+                        {/call}
+                    <h2>Yet Another Commit Checker default configuration. Repository hook configuration wins.</h2>
+                        {call .formContents}
+                            {param config: $config /}
+                            {param errors: $errors /}
+                        {/call}
+                        {call widget.aui.form.buttons}
+                            {param content}
+                                {call widget.aui.form.submit}
+                                    {param id: 'submit' /}
+                                    {param isPrimary: true /}
+                                    {param accessKey: 's' /}
+                                    {param label: 'Save' /}
                                 {/call}
-		{/param}
-	{/call}
-	{/param}
-	{/call}
+                                {call widget.aui.form.cancelButton}
+                                    {param href: nav_admin() /}
+                                {/call}
+                            {/param}
+                        {/call}
+                    {/param}
+                {/call}
+            {/param}
+        {/call}
     </body>
 </html>
 {/template}

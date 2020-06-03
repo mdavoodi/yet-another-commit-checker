@@ -2,27 +2,92 @@ package ut.com.isroot.stash.plugin;
 
 import com.atlassian.applinks.api.ApplicationLink;
 import com.atlassian.applinks.api.ApplicationLinkService;
+import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
+import com.atlassian.bitbucket.hook.repository.RepositoryPushHookRequest;
+import com.atlassian.bitbucket.hook.repository.StandardRepositoryHookTrigger;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.EscalatedSecurityContext;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.UserService;
 import com.atlassian.sal.api.net.Request;
+import com.atlassian.sal.api.pluginsettings.PluginSettings;
+import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
+import com.atlassian.sal.testresources.pluginsettings.MockPluginSettingsFactory;
 import com.google.gson.Gson;
+import com.isroot.stash.plugin.ImpersonationService;
 import com.isroot.stash.plugin.IssueKey;
+import com.isroot.stash.plugin.YaccConfigServlet;
 import com.isroot.stash.plugin.errors.YaccError;
 import com.isroot.stash.plugin.jira.JiraServiceImpl;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import ut.com.isroot.stash.plugin.mock.MockApplicationLink;
 import ut.com.isroot.stash.plugin.mock.MockApplicationLinkService;
+import ut.com.isroot.stash.plugin.mock.MockSettingsBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Sean Ford
  * @since 2014-01-15
  */
+@RunWith(Parameterized.class)
 public class JiraServiceImplTest {
+    @Mock private SecurityService securityService;
+    @Mock private UserService userService;
+    @Mock private RepositoryHookService repositoryHookService;
+    @Mock private EscalatedSecurityContext escalatedSecurityContext;
+    @Mock private RepositoryPushHookRequest repositoryPushHookRequest;
+    @Mock private ApplicationUser globalUser;
+    Map<String, Object> globalSettingsMap = new HashMap<>();
+    @Parameter
+    public Boolean overrideJiraUserEnabled;
+
+    private PluginSettingsFactory pluginSettingsFactory;
+
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] {
+            { true }, { false }
+        });
+    }
+
+    @Before
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+
+        pluginSettingsFactory = new MockPluginSettingsFactory();
+
+        when(securityService.impersonating(globalUser, "YACC Hook"))
+            .thenReturn(escalatedSecurityContext);
+
+        when(repositoryHookService.createSettingsBuilder()).thenReturn(new MockSettingsBuilder(), new MockSettingsBuilder(), new MockSettingsBuilder(), new MockSettingsBuilder());
+
+        PluginSettings pluginSettings = pluginSettingsFactory.createGlobalSettings();
+        if (overrideJiraUserEnabled) {
+            globalSettingsMap.putIfAbsent("overrideJiraUserEnabled", Boolean.TRUE.toString());
+        }
+        globalSettingsMap.putIfAbsent("overrideJiraUser", "admin");
+        pluginSettings.put(YaccConfigServlet.SETTINGS_MAP, globalSettingsMap);
+
+        when(repositoryPushHookRequest.getTrigger())
+            .thenReturn(StandardRepositoryHookTrigger.REPO_PUSH);
+    }
+
     @Test
     public void testDoesIssueExist_returnsEmptyListIfJiraSearchResultsIsNonZero() {
         JiraServiceImpl jiraService = setupTest(
@@ -267,6 +332,7 @@ public class JiraServiceImplTest {
 
     private JiraServiceImpl setupTest(ApplicationLink... links) {
         ApplicationLinkService linkService = new MockApplicationLinkService(links);
-        return new JiraServiceImpl(linkService);
+        ImpersonationService impersonationService = new ImpersonationService(userService, securityService, pluginSettingsFactory, repositoryHookService);
+        return new JiraServiceImpl(linkService, impersonationService);
     }
 }

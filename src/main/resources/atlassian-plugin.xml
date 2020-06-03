@@ -12,22 +12,22 @@
 
     <!-- add our i18n resource -->
     <resource type="i18n" name="i18n" location="yacc"/>
-    
+
     <!-- add our web resources -->
     <web-resource key="yacc-resources" name="yacc Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
-        
+
         <resource type="download" name="yacc.css" location="/css/yacc.css"/>
         <resource type="download" name="yacc.js" location="/js/yacc.js"/>
         <resource type="download" name="images/" location="/images"/>
 
         <context>yacc</context>
     </web-resource>
-    
+
     <!-- import from the product container -->
     <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
 
-	<component-import key="applicationLinkService" interface="com.atlassian.applinks.api.ApplicationLinkService" />
+    <component-import key="applicationLinkService" interface="com.atlassian.applinks.api.ApplicationLinkService"/>
 
     <component-import key="scmService" interface="com.atlassian.bitbucket.scm.ScmService"/>
 
@@ -42,18 +42,31 @@
         <interface>com.isroot.stash.plugin.YaccService</interface>
     </component>
 
-	<repository-hook key="yaccHook" name="Yet Another Commit Checker"  class="com.isroot.stash.plugin.YaccHook">
-		<description>Yet Another Commit Checker pre-receive hook.</description>
-		<config-form name="Yacc Hook Config" key="yaccHook-config">
-			<view>com.atlassian.stash.repository.hook.ref.formContents</view>
-			<directory location="/static/" />
-		</config-form>
-		<validator>com.isroot.stash.plugin.ConfigValidator</validator>
+    <component key="impersonizationService" class="com.isroot.stash.plugin.ImpersonationService" public="true">
+        <interface>com.isroot.stash.plugin.ImpersonationService</interface>
+    </component>
+
+    <repository-hook key="yaccHook" name="Yet Another Commit Checker" class="com.isroot.stash.plugin.YaccHook">
+        <description>Yet Another Commit Checker pre-receive hook.</description>
+        <config-form name="Yacc Hook Config" key="yaccHook-config">
+            <view>com.atlassian.stash.repository.hook.ref.formContents</view>
+            <directory location="/static/"/>
+        </config-form>
+        <validator>com.isroot.stash.plugin.ConfigValidator</validator>
         <scopes>
             <scope>project</scope>
             <scope>repository</scope>
         </scopes>
-	</repository-hook>
+    </repository-hook>
+
+    <web-item name="YACC global settings" i18n-name-key="yacc.settings.item.name"
+              key="yacc-settings-item" section="atl.admin/admin-plugins-section" weight="1000">
+        <description key="yacc-settings-item-description">
+            YACC Global Settings Item Plugin
+        </description>
+        <label key="yacc-settings-item.label"/>
+        <link linkId="yacc-settings-item-link">/plugins/servlet/yaccHook/config</link>
+    </web-item>
 
     <!-- Global pre-receive hook module definitions -->
     <servlet key="yaccHook-config-servlet" name="YaccHook Configuration Servlet"

@@ -47,7 +47,7 @@ public class YaccRepoSettingsPage extends YaccSettingsCommon {
 
         log.info("enabling yacc");
 
-        inheritToggle.toggle();
+        inheritToggle.select();
         enabledOption.click();
 
         return this;
@@ -62,7 +62,7 @@ public class YaccRepoSettingsPage extends YaccSettingsCommon {
     public YaccRepoSettingsPage clickDisable() {
         log.info("disabling yacc");
 
-        inheritToggle.toggle();
+        inheritToggle.select();
         disabledOption.click();
 
         return this;

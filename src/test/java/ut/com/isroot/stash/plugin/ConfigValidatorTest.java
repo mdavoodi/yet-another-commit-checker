@@ -3,6 +3,7 @@ package ut.com.isroot.stash.plugin;
 import com.atlassian.bitbucket.scope.Scope;
 import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.setting.SettingsValidationErrors;
+import com.atlassian.bitbucket.user.UserService;
 import com.isroot.stash.plugin.ConfigValidator;
 import com.isroot.stash.plugin.JiraService;
 import org.junit.Before;
@@ -27,6 +28,7 @@ public class ConfigValidatorTest {
     @Mock private Settings settings;
     @Mock private SettingsValidationErrors settingsValidationErrors;
     @Mock private Scope scope;
+    @Mock private UserService userService;
 
     private ConfigValidator configValidator;
 
@@ -35,7 +37,7 @@ public class ConfigValidatorTest {
         MockitoAnnotations.initMocks(this);
         System.setProperty("line.separator", "\n");
 
-        configValidator = new ConfigValidator(jiraService);
+        configValidator = new ConfigValidator(jiraService, userService);
     }
 
     @Test

@@ -51,17 +51,21 @@ public class SettingsTest {
                 .loginAsSysAdmin(YaccGlobalSettingsPage.class);
 
         verifyDefaults(globalSettings);
+        verifyDefaultGlobalSettings(globalSettings);
 
         setInvalidValues(globalSettings);
+        setInvalidGlobalValues(globalSettings);
         globalSettings.clickSubmit();
-        verifyValidationErrors(globalSettings);
+        verifyGlobalValidationErrors(globalSettings);
 
         setValues(globalSettings);
+        setGlobalValues(globalSettings);
         globalSettings.clickSubmit();
 
         globalSettings = STASH.visit(YaccGlobalSettingsPage.class);
 
         verifyValues(globalSettings);
+        verifyGlobalValues(globalSettings);
     }
 
     @Test
@@ -85,6 +89,11 @@ public class SettingsTest {
         verifyValues(repoSettingsPage);
     }
 
+    private void verifyDefaultGlobalSettings(YaccGlobalSettingsPage yaccGlobalSettingsPage) {
+        yaccGlobalSettingsPage.verifyOverrideJiraUserEnabled(false)
+            .verifyOverrideJiraUserText("");
+    }
+
     private void verifyDefaults(YaccSettingsCommon yaccSettingsCommon) {
         yaccSettingsCommon.verifyRequireMatchingAuthorName(false)
                 .verifyRequireMatchingAuthorEmail(false)
@@ -104,6 +113,10 @@ public class SettingsTest {
                 .verifyExcludeMergeCommits(false);
     }
 
+    private void setInvalidGlobalValues(YaccGlobalSettingsPage yaccGlobalSettingsPage) {
+        yaccGlobalSettingsPage.setOverrideJiraUserText("nonexistantuser");
+    }
+
     private void setInvalidValues(YaccSettingsCommon yaccSettingsCommon) {
         yaccSettingsCommon.setCommitMessageRegex("(invalid regex")
                 .setExcludeByRegex("(invalid regex")
@@ -114,6 +127,11 @@ public class SettingsTest {
     private void verifyValidationErrors(YaccSettingsCommon yaccSettingsCommon) {
         assertThat(yaccSettingsCommon.getFieldIdsWithErrors())
                 .containsOnly("commitMessageRegex", "excludeByRegex", "excludeBranchRegex", "committerEmailRegex");
+    }
+
+    private void verifyGlobalValidationErrors(YaccSettingsCommon yaccSettingsCommon) {
+        assertThat(yaccSettingsCommon.getFieldIdsWithErrors())
+                .containsOnly("overrideJiraUser", "commitMessageRegex", "excludeByRegex", "excludeBranchRegex", "committerEmailRegex");
     }
 
     private void setValues(YaccSettingsCommon yaccSettingsCommon) {
@@ -136,6 +154,11 @@ public class SettingsTest {
                 .clickExcludeServiceUserCommits();
     }
 
+    private void setGlobalValues(YaccGlobalSettingsPage yaccGlobalSettingsPage) {
+        yaccGlobalSettingsPage.clickOverrideJiraUserEnabled()
+            .setOverrideJiraUserText("admin");
+    }
+
     private void verifyValues(YaccSettingsCommon yaccSettingsCommon) {
         yaccSettingsCommon.verifyRequireMatchingAuthorEmail(true)
                 .verifyRequireMatchingAuthorName(true)
@@ -154,5 +177,10 @@ public class SettingsTest {
                 .verifyExcludeByRegex(".*")
                 .verifyExcludeBranchRegex(".*")
                 .verifyExcludeMergeCommits(true);
+    }
+
+    private void verifyGlobalValues(YaccGlobalSettingsPage yaccGlobalSettingsPage) {
+        yaccGlobalSettingsPage.verifyOverrideJiraUserEnabled(true)
+            .verifyOverrideJiraUserText("admin");
     }
 }
