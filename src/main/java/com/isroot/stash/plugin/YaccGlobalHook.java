@@ -8,7 +8,6 @@ import com.atlassian.bitbucket.hook.repository.RepositoryHookRequest;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookResult;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookTrigger;
-import com.atlassian.bitbucket.hook.repository.RepositoryPushHookRequest;
 import com.atlassian.bitbucket.hook.repository.StandardRepositoryHookTrigger;
 import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.repository.Repository;
@@ -90,7 +89,7 @@ public class YaccGlobalHook implements PreRepositoryHook {
         final RepositoryHookTrigger trigger = request.getTrigger();
 
         if (trigger == StandardRepositoryHookTrigger.REPO_PUSH) {
-            return yaccService.check(context, (RepositoryPushHookRequest) request, config);
+            return yaccService.check(context, request, config);
         } else if (trigger == StandardRepositoryHookTrigger.BRANCH_CREATE
                 && request instanceof BranchCreationHookRequest) {
 

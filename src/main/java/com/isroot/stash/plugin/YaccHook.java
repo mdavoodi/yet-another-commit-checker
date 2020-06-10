@@ -6,7 +6,6 @@ import com.atlassian.bitbucket.hook.repository.PreRepositoryHookContext;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookRequest;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookResult;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookTrigger;
-import com.atlassian.bitbucket.hook.repository.RepositoryPushHookRequest;
 import com.atlassian.bitbucket.hook.repository.StandardRepositoryHookTrigger;
 import com.atlassian.bitbucket.repository.Branch;
 import com.atlassian.bitbucket.setting.Settings;
@@ -43,8 +42,8 @@ public class YaccHook implements PreRepositoryHook {
 
         final RepositoryHookTrigger trigger = repositoryHookRequest.getTrigger();
 
-        if (trigger == StandardRepositoryHookTrigger.REPO_PUSH) {
-            return handleRepositoryPush(context, (RepositoryPushHookRequest) repositoryHookRequest);
+        if (trigger == StandardRepositoryHookTrigger.REPO_PUSH || trigger == StandardRepositoryHookTrigger.FILE_EDIT) {
+            return handleRepositoryPush(context, repositoryHookRequest);
         } else if (trigger == StandardRepositoryHookTrigger.BRANCH_CREATE
                 && repositoryHookRequest instanceof BranchCreationHookRequest) {
 
@@ -63,14 +62,14 @@ public class YaccHook implements PreRepositoryHook {
 
     private RepositoryHookResult handleRepositoryPush(
             @Nonnull PreRepositoryHookContext context,
-            @Nonnull RepositoryPushHookRequest repositoryPushHookRequest) {
+            @Nonnull RepositoryHookRequest repositoryHookRequest) {
         final Settings settings = context.getSettings();
 
         RepositoryHookResult result;
         try {
-            result = yaccService.check(context, repositoryPushHookRequest, settings);
+            result = yaccService.check(context, repositoryHookRequest, settings);
         } catch (TimeLimitedMatcherFactory.RegExpTimeoutException e) {
-            log.error("Regex timeout for {} / {}", repositoryPushHookRequest.getRepository().getProject().getName(), repositoryPushHookRequest.getRepository().getName());
+            log.error("Regex timeout for {} / {}", repositoryHookRequest.getRepository().getProject().getName(), repositoryHookRequest.getRepository().getName());
             log.error("Regex timeout exceeded", e);
             result = RepositoryHookResult.rejected("Regex timeout exceeded", "The timeout for evaluating regular expression has been exceeded");
         }
