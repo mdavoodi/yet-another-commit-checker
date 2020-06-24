@@ -1,3 +1,4 @@
+
 # Yet Another Commit Checker [![CI](https://github.com/sford/yet-another-commit-checker/workflows/CI/badge.svg)](https://github.com/sford/yet-another-commit-checker/actions)
 
 - [About](#about)
