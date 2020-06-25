@@ -10,6 +10,11 @@ public class MutableYaccSettings extends MapBackedSettings {
         return this;
     }
 
+    public MutableYaccSettings setIgnoreJiraConnectionFailures(Boolean value) {
+        set("ignoreJiraConnectionFailures", value);
+        return this;
+    }
+
     public MutableYaccSettings setIgnoreUnknownIssueProjectKeys(Boolean value) {
         set("ignoreUnknownIssueProjectKeys", value);
         return this;

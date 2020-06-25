@@ -303,11 +303,13 @@ public class YaccServiceImpl implements YaccService {
 
         log.debug("ignoreUnknownIssueProjectKeys={}", ignoreUnknownProjectKeys);
 
+        final boolean ignoreJiraConnectionFailures = settings.getBoolean("ignoreJiraConnectionFailures", false);
+
         if (ignoreUnknownProjectKeys) {
             /* Remove issues that contain non-existent project keys */
             issues = Lists.newArrayList();
             for (IssueKey issueKey : extractedKeys) {
-                if (jiraService.doesProjectExist(issueKey)) {
+                if (jiraService.doesProjectExist(issueKey, ignoreJiraConnectionFailures)) {
                     issues.add(issueKey);
                 }
             }
@@ -317,7 +319,7 @@ public class YaccServiceImpl implements YaccService {
 
         if (!issues.isEmpty()) {
             for (IssueKey issueKey : issues) {
-                errors.addAll(checkJiraIssue(settings, issueKey));
+                errors.addAll(checkJiraIssue(settings, issueKey, ignoreJiraConnectionFailures));
             }
         } else {
             errors.add(new YaccError(YaccError.Type.NO_JIRA_ISSUE, "No JIRA Issue found in commit message"));
@@ -326,18 +328,18 @@ public class YaccServiceImpl implements YaccService {
         return errors;
     }
 
-    private List<YaccError> checkJiraIssue(Settings settings, IssueKey issueKey) {
+    private List<YaccError> checkJiraIssue(Settings settings, IssueKey issueKey, boolean ignoreJiraConnectionFailures) {
         List<YaccError> errors = Lists.newArrayList();
 
         log.debug("checking JIRA issue={}", issueKey);
 
-        errors.addAll(jiraService.doesIssueExist(issueKey));
+        errors.addAll(jiraService.doesIssueExist(issueKey, ignoreJiraConnectionFailures));
 
         if (errors.isEmpty()) {
             String jqlQuery = settings.getString("issueJqlMatcher");
 
             if (jqlQuery != null && !jqlQuery.isEmpty()) {
-                errors.addAll(jiraService.doesIssueMatchJqlQuery(jqlQuery, issueKey));
+                errors.addAll(jiraService.doesIssueMatchJqlQuery(jqlQuery, issueKey, ignoreJiraConnectionFailures));
             }
         }
 

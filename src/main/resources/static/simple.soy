@@ -72,6 +72,16 @@
 		{param errorTexts: $errors ? $errors['issueJqlMatcher'] : null /}
 	{/call}
 
+	{call aui.form.checkboxField}
+		{param legendContent: 'Ignore JIRA Issue Requirements when connecting to JIRA fails' /}
+		{param fields: [[
+			'id' : 'ignoreJiraConnectionFailures',
+			'labelText': 'Enabled',
+			'isChecked' : $config['ignoreJiraConnectionFailures']
+		]] /}
+		{param descriptionText: 'When enabled, ignore all JIRA Issue requirements when the JIRA server can\'t be reached.' /}
+	{/call}
+
 	<h3>Branch Requirements</h3>
 
   {call aui.form.textField}

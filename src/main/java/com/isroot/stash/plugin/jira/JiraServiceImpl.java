@@ -1,5 +1,6 @@
 package com.isroot.stash.plugin.jira;
 
+import org.apache.http.conn.HttpHostConnectException;
 import com.atlassian.applinks.api.ApplicationLink;
 import com.atlassian.applinks.api.ApplicationLinkRequest;
 import com.atlassian.applinks.api.ApplicationLinkService;
@@ -67,7 +68,7 @@ public class JiraServiceImpl implements JiraService {
     }
 
     @Override
-    public List<YaccError> doesIssueExist(IssueKey issueKey) {
+    public List<YaccError> doesIssueExist(IssueKey issueKey, boolean ignoreJiraConnectionFailures) {
         checkNotNull(issueKey, "issueKey is null");
 
         List<YaccError> errors = new ArrayList<>();
@@ -79,7 +80,7 @@ public class JiraServiceImpl implements JiraService {
             // 2) If project key exists but issue number does not exist, a 400 response due to
             //    invalid JQL is returned
             if (!execute("issueKey='" + issueKey.getFullyQualifiedIssueKey() + "'",
-                    SUCCESS_ON.NON_ZERO_RESULT, false)) {
+                    SUCCESS_ON.NON_ZERO_RESULT, false, ignoreJiraConnectionFailures)) {
                 errors.add(new YaccError(YaccError.Type.ISSUE_JQL, "%s: JIRA Issue does not exist",
                         issueKey.getFullyQualifiedIssueKey()));
             }
@@ -94,13 +95,13 @@ public class JiraServiceImpl implements JiraService {
     }
 
     @Override
-    public boolean doesProjectExist(IssueKey issueKey) {
+    public boolean doesProjectExist(IssueKey issueKey, boolean ignoreJiraConnectionFailures) {
         checkNotNull(issueKey, "issueKey is null");
 
         try {
             String jql = String.format("project = '%s'", issueKey.getProjectKey());
 
-            return execute(jql, SUCCESS_ON.STATUS_200, false);
+            return execute(jql, SUCCESS_ON.STATUS_200, false, ignoreJiraConnectionFailures);
         } catch (JiraLookupsException e) {
 
             // Assume project exists if there is any sort of error. If there
@@ -112,7 +113,7 @@ public class JiraServiceImpl implements JiraService {
     }
 
     @Override
-    public List<YaccError> doesIssueMatchJqlQuery(String jqlQuery, IssueKey issueKey) {
+    public List<YaccError> doesIssueMatchJqlQuery(String jqlQuery, IssueKey issueKey, boolean ignoreJiraConnectionFailures) {
         checkNotNull(jqlQuery, "jqlQuery is null");
         checkNotNull(issueKey, "issueKey is null");
 
@@ -122,7 +123,7 @@ public class JiraServiceImpl implements JiraService {
                 issueKey.getFullyQualifiedIssueKey(), jqlQuery);
 
         try {
-            if (!execute(jqlQueryWithIssueExpression, SUCCESS_ON.NON_ZERO_RESULT, true)) {
+            if (!execute(jqlQueryWithIssueExpression, SUCCESS_ON.NON_ZERO_RESULT, true, ignoreJiraConnectionFailures)) {
                 errors.add(new YaccError(YaccError.Type.ISSUE_JQL, "%s: JIRA Issue does not match JQL Query: %s",
                         issueKey.getFullyQualifiedIssueKey(), jqlQuery));
             }
@@ -142,7 +143,7 @@ public class JiraServiceImpl implements JiraService {
 
         try {
             // This will throw an exception if the jql query is invalid.
-            if(execute(jqlQuery, SUCCESS_ON.STATUS_200, false)) {
+            if(execute(jqlQuery, SUCCESS_ON.STATUS_200, false, false)) {
                 return ImmutableList.<String>of();
             } else {
                 return ImmutableList.of("JQL Query is invalid.");
@@ -157,7 +158,7 @@ public class JiraServiceImpl implements JiraService {
         }
     }
 
-    private boolean execute(String jqlQuery, SUCCESS_ON successOn, boolean trackInvalidJqlAsError)
+    private boolean execute(String jqlQuery, SUCCESS_ON successOn, boolean trackInvalidJqlAsError, boolean ignoreJiraConnectionFailures)
             throws JiraLookupsException {
         checkNotNull(jqlQuery, "jqlQuery is null");
 
@@ -220,6 +221,11 @@ public class JiraServiceImpl implements JiraService {
 
                         continue;
                     }
+                }
+
+                if (ignoreJiraConnectionFailures && e.getCause() instanceof HttpHostConnectException) {
+                    log.error("can not connect to JIRA instance, Ignore JIRA Issue Requirements ignored", e);
+                    return true;
                 }
 
                 log.error("response", e);

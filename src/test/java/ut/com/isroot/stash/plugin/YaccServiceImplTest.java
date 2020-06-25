@@ -3,6 +3,7 @@ package ut.com.isroot.stash.plugin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -262,8 +263,8 @@ public class YaccServiceImplTest {
         settings.setIgnoreUnknownIssueProjectKeys(true);
 
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
-        when(jiraService.doesProjectExist(new IssueKey("ABC", "123"))).thenReturn(true);
-        when(jiraService.doesProjectExist(new IssueKey("UTF", "8"))).thenReturn(false);
+        when(jiraService.doesProjectExist(new IssueKey("ABC", "123"), false)).thenReturn(true);
+        when(jiraService.doesProjectExist(new IssueKey("UTF", "8"), false)).thenReturn(false);
 
         YaccCommit commit = mockCommit();
         when(commit.getMessage()).thenReturn(
@@ -272,9 +273,9 @@ public class YaccServiceImplTest {
         List<YaccError> errors = yaccService.checkCommit(settings, commit, null);
         assertThat(errors).isEmpty();
         verify(jiraService).doesJiraApplicationLinkExist();
-        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"));
-        verify(jiraService).doesProjectExist(new IssueKey("ABC-123"));
-        verify(jiraService).doesProjectExist(new IssueKey("UTF-8"));
+        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"), false);
+        verify(jiraService).doesProjectExist(new IssueKey("ABC-123"), false);
+        verify(jiraService).doesProjectExist(new IssueKey("UTF-8"), false);
     }
 
     @Test
@@ -283,7 +284,7 @@ public class YaccServiceImplTest {
         settings.setRequireJiraIssue(true);
         settings.setIgnoreUnknownIssueProjectKeys(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
-        when(jiraService.doesProjectExist(new IssueKey("UTF", "8"))).thenReturn(false);
+        when(jiraService.doesProjectExist(new IssueKey("UTF", "8"), false)).thenReturn(false);
 
         YaccCommit commit = mockCommit();
         when(commit.getMessage()).thenReturn(
@@ -304,7 +305,7 @@ public class YaccServiceImplTest {
         List<YaccError> errors = yaccService.checkCommit(settings, commit, null);
         assertThat(errors).isEmpty();
         verify(jiraService).doesJiraApplicationLinkExist();
-        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"));
+        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"), false);
     }
 
     @Test
@@ -318,16 +319,16 @@ public class YaccServiceImplTest {
                 .thenReturn("these issue ids should be extracted: ABC-123, ABC_D-123, ABC2-123");
 
         yaccService.checkCommit(settings, commit, null);
-        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"));
-        verify(jiraService).doesIssueExist(new IssueKey("ABC_D-123"));
-        verify(jiraService).doesIssueExist(new IssueKey("ABC2-123"));
+        verify(jiraService).doesIssueExist(new IssueKey("ABC-123"), false);
+        verify(jiraService).doesIssueExist(new IssueKey("ABC_D-123"), false);
+        verify(jiraService).doesIssueExist(new IssueKey("ABC2-123"), false);
     }
 
     @Test
     public void testCheckCommit_requireJiraIssue_errorsPassedThroughIfTheyAreReturned() {
         settings.setRequireJiraIssue(true);
         when(jiraService.doesJiraApplicationLinkExist()).thenReturn(true);
-        when(jiraService.doesIssueExist(any(IssueKey.class)))
+        when(jiraService.doesIssueExist(any(IssueKey.class), anyBoolean()))
                 .thenReturn(Lists.newArrayList(new YaccError("some error")));
 
         YaccCommit commit = mockCommit();
@@ -335,7 +336,7 @@ public class YaccServiceImplTest {
 
         List<YaccError> errors = yaccService.checkCommit(settings, commit, null);
         assertThat(errors).containsExactly(new YaccError("some error"));
-        verify(jiraService).doesIssueExist(new IssueKey("ABC", "123"));
+        verify(jiraService).doesIssueExist(new IssueKey("ABC", "123"), false);
     }
 
     @Test
